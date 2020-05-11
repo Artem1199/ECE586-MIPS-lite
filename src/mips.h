@@ -45,6 +45,8 @@ class Pipeline{
         void MEM_stage();
         void WB_stage();
 
+        void visualization();
+
     private:
 
         Instruction inst_array[5];

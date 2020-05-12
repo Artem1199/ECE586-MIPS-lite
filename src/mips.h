@@ -17,10 +17,11 @@ enum e_stages {
 class Instruction{
 
     public:
-    Instruction();
-    Instruction (signed int a);
-
-    void print_Instruction();
+    Instruction(unsigned int a);
+    
+    string stringify();
+    void print();
+    void decode(signed int a);
 
     private:
         e_opCode operation;
@@ -29,6 +30,8 @@ class Instruction{
         signed int rd;
         signed int immediate;
         bool r_instruction;
+        signed int address;
+
         friend class Pipeline;
 
 };

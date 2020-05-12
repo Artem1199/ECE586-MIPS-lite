@@ -24,7 +24,8 @@ unsigned int memory_image[5]{
     0x00853000,
 };
 
-Instruction::Instruction ( ){
+Instruction::Instruction (unsigned int a){
+    address = a;
     operation = NOP;
     rs = 0;
     rt = 0;
@@ -32,7 +33,7 @@ Instruction::Instruction ( ){
     immediate = 0;
 };
 
-Instruction::Instruction (signed int hexin){
+void Instruction::decode (signed int hexin){
 
     signed int x;
     std::stringstream ss;
@@ -53,7 +54,55 @@ Instruction::Instruction (signed int hexin){
     
 };
 
-void Instruction::print_Instruction(){
+string Instruction::stringify(){
+
+    switch (operation)
+    {
+    case ADD:
+        "ADD";
+        break;
+    case SUB:
+        "SUB";
+        break;
+    case MUL:
+        "MUL";
+        break;
+    case OR:
+        "OR";
+        break;
+    case AND:
+    case XOR:
+        Reg[inst_array[WB].rd] = stage_in[WB];
+        break;
+
+    case ADDI:
+    case SUBI:
+    case MULI:
+    case ORI:
+    case ANDI:
+    case XORI:
+    case LDW:
+        Reg[inst_array[WB].rt] = stage_in[WB];
+        break;
+
+    case JR:
+        PC = stage_in[WB];
+        break; 
+
+    case BEQ:
+    case BZ:
+        PC += stage_in[WB] * PC_OFFSET - 4 * PC_OFFSET;
+        break;
+        
+    default:
+        break;
+    }
+
+
+
+}
+
+void Instruction::print(){
 
 
     if (this -> r_instruction){
@@ -91,12 +140,13 @@ void Pipeline::clock(){
     stage_in[EX] = stage_out[ID];
     stage_in[MEM] = stage_out[EX];
     stage_in[WB] = stage_out[MEM];
-
 }
 
 void Pipeline::IF_stage(){
 
-    this -> stage_out[IF] = memory_image[PC];
+    inst_array[ID] = Instruction(PC);
+
+    stage_out[IF] = memory_image[PC];
     PC + PC_OFFSET;
 
     return;
@@ -104,9 +154,8 @@ void Pipeline::IF_stage(){
 
 void Pipeline::ID_stage(){
 
-    Instruction a = Instruction(this -> stage_in[ID]);
+    inst_array[ID].decode(stage_in[ID]);
 
-    this -> inst_array[ID] = a;
 }
 
 void Pipeline::EX_stage(){
@@ -257,7 +306,7 @@ int main()
 
     mips.ID_stage;
 
-    a.print_Instruction();
+    a.print();
             return 0;
 
 }

@@ -6,6 +6,8 @@ enum e_opCode {
     LDW = 12, STW = 13,
 
     BZ = 14, BEQ = 15, JR = 16, HALT = 17,
+
+    NOP = 100,
 };
 
 enum e_stages {
@@ -15,7 +17,7 @@ enum e_stages {
 class Instruction{
 
     public:
-
+    Instruction();
     Instruction (signed int a);
 
     void print_Instruction();

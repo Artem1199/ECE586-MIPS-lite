@@ -20,7 +20,9 @@ class Instruction{
     Instruction();
     Instruction (signed int a);
 
+
     void print_Instruction();
+    string tostring();
 
     private:
         e_opCode operation;

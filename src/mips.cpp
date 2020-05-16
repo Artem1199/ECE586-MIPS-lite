@@ -92,6 +92,47 @@ void Pipeline::clock(){
     stage_in[MEM] = stage_out[EX];
     stage_in[WB] = stage_out[MEM];
 
+};
+
+string Instruction::tostring(){
+    string a;
+    
+    switch (operation)
+    {
+    case ADD: a = "ADD"; break;
+    case ADDI: a = "ADDI"; break;
+    case SUB: a = "SUB"; break;
+    case MUL: a = "MUL"; break;
+    case MULI: a = "MULI"; break;
+    case OR: a = "OR"; break;
+    case ORI: a = "ORI"; break;
+    case AND: a = "AND"; break;
+    case ANDI: a = "ANDI"; break;
+    case XOR: a = "XOR"; break;
+    case XORI: a = "XORI"; break;
+    case LDW: a = "LDW"; break;
+    case STW: a = "STW"; break;
+    case BZ: a = "BZ"; break;
+    case BEQ: a = "BEQ"; break;
+    case JR: a = "JR"; break;
+    case HALT: a = "HALT"; break;
+    case NOP: a = "NOP"; break;
+
+    a += " R";
+    a += to_string(rs);
+
+    if (r_instruction){
+
+    }else{
+        
+    }
+    a += " R"
+    a += to_string(rt);
+    
+    
+    default:
+        break;
+    }
 }
 
 void Pipeline::IF_stage(){

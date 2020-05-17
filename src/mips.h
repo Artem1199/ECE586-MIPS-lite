@@ -1,3 +1,8 @@
+#ifndef INSTRUCTION_H
+#define INSTRUCTION_H    
+#include <iostream>
+using namespace std;
+
 enum e_opCode {
     ADD = 0, ADDI = 1, SUB = 2, SUBI = 3, MUL = 4, MULI = 5,
     
@@ -19,7 +24,7 @@ class Instruction{
     public:
     Instruction(unsigned int a);
     
-    string stringify();
+    string stringify ();
     void print();
     void decode(signed int a);
 
@@ -35,6 +40,7 @@ class Instruction{
         friend class Pipeline;
 
 };
+#endif //INSTRUCTION_H
 
 class Pipeline{
 

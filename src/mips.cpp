@@ -97,13 +97,9 @@ string Instruction::stringify(){
     default:
         break;
     }
-
-
-
-}
+    }
 
 void Instruction::print(){
-
 
     if (this -> r_instruction){
         cout << "operation: " << this -> operation << " ";
@@ -116,7 +112,6 @@ void Instruction::print(){
         cout << "Rt: " << this -> rt << " ";
         cout << "Immediate: " << this -> immediate << " ";
     };
-
 };
 
 Pipeline::Pipeline(){

@@ -45,13 +45,18 @@ void Instruction::decode (signed int hexin){
     rt = (x<<11)>>27;
     rd = (x<<16)>>27;
     immediate = (x<<16)>>16;
-
+    // four conditon, i type instruction, i type instruction, or HALT
     if ((operation == ADD) or (operation == SUB) or (operation == MUL) or (operation == OR) or (operation == AND) or (operation == XOR)) {
         r_instruction = true;
-    } else {
+        i_instruction = false;
+    } else if ((operation == ADDI) or (operation == SUBI) or (operation == MULI) or (operation == ORI) or (operation == ANDI) or (operation == XORI) or (operation == LDW) or (operation == STW) or (operation == BZ) or  (operation == BEQ) or (operation == JR) or (operation == HALT)) {
+        i_instruction = true;
         r_instruction = false;
-    };
-    
+    } else { // halt is confirmed
+        i_instruction = true;
+        r_instruction = false;
+        halt_flag = 1;
+    }
 };
 
 string Instruction::stringify(){
@@ -72,7 +77,7 @@ string Instruction::stringify(){
         break;
     case AND:
     case XOR:
-        Reg[inst_array[WB].rd] = stage_in[WB];
+        // Reg[inst_array[WB].rd] = stage_in[WB];
         break;
 
     case ADDI:
@@ -82,16 +87,16 @@ string Instruction::stringify(){
     case ANDI:
     case XORI:
     case LDW:
-        Reg[inst_array[WB].rt] = stage_in[WB];
+        // Reg[inst_array[WB].rt] = stage_in[WB];
         break;
 
     case JR:
-        PC = stage_in[WB];
+        //PC = stage_in[WB];
         break; 
 
     case BEQ:
     case BZ:
-        PC += stage_in[WB] * PC_OFFSET - 4 * PC_OFFSET;
+        //PC += stage_in[WB] * PC_OFFSET - 4 * PC_OFFSET;
         break;
         
     default:
@@ -115,9 +120,9 @@ void Instruction::print(){
 };
 
 Pipeline::Pipeline(){
-    inst_array[5];
-    stage_in[5] = 0;
-    stage_out[5] = 0;
+    string inst_array[5];
+    string stage_in[5] = 0;
+    string stringstage_out[5] = 0;
 };
 
 void Pipeline::clock(){
@@ -138,7 +143,9 @@ void Pipeline::clock(){
 }
 
 void Pipeline::IF_stage(){
-
+    // Condition 1: check if PC count is out side mem range and provide a halt
+    // Condition 2: contine if PC cound is within Memory range
+        // Task: bitwise shit to get instruction from memory 
     inst_array[ID] = Instruction(PC);
 
     stage_out[IF] = memory_image[PC];
@@ -154,7 +161,7 @@ void Pipeline::ID_stage(){
 }
 
 void Pipeline::EX_stage(){
-
+    int halt_flag = 0;
     switch (inst_array[EX].operation)
     {
     case ADD:
@@ -217,8 +224,10 @@ void Pipeline::EX_stage(){
         break;
 
     default:
-        break;
+        // if not on of opcodes then HALT is equal to true '1'
+        halt_flag = 1;
     }
+    return halt_flag;    // need to figure this out
 }
 
 void Pipeline::MEM_stage(){
@@ -289,19 +298,17 @@ void Pipeline::visualization(){
 };
 
 
-int main()
+/** int main()
 
 {
 
     Instruction a(0x3142FFFF);  // operation: 12 Rs: 10 Rt: 2 Immediate: -1
      a = Instruction(0xFF853000);
     
+    // Pipeline mips();
 
-    Pipeline mips();
-
-    mips.ID_stage;
+    // mips.ID_stage;
 
     a.print();
             return 0;
-
-}
+ **/

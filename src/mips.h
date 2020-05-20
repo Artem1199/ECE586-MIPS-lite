@@ -1,3 +1,8 @@
+#ifndef INSTRUCTION_H
+#define INSTRUCTION_H    
+#include <iostream>
+using namespace std;
+
 enum e_opCode {
     ADD = 0, ADDI = 1, SUB = 2, SUBI = 3, MUL = 4, MULI = 5,
     
@@ -11,7 +16,10 @@ enum e_opCode {
 };
 
 enum e_stages {
-    IF = 0, ID = 1, EX = 2, MEM = 3, WB = 4
+    IF = 0, ID = 1, EX = 2, ALU1 = 5, MEM = 3, ALU2 = 5, WB = 4
+    // we may have a RF stage that include instruction decoding and source register reads
+    // then the order as follow:
+    // IF = 0, RF = 1, ALU1 = 2, MEM = 3, ALU2 = 4, WB = 5
 };
 
 class Instruction{
@@ -19,7 +27,7 @@ class Instruction{
     public:
     Instruction(unsigned int a);
     
-    string stringify();
+    string stringify ();
     void print();
     void decode(signed int a);
 
@@ -30,6 +38,8 @@ class Instruction{
         signed int rd;
         signed int immediate;
         bool r_instruction;
+        bool i_instruction;
+        bool halt_flag;
         signed int address;
 
         friend class Pipeline;
@@ -40,7 +50,12 @@ class Pipeline{
 
     public:
 
-        Pipeline();
+        Pipeline(){
+            string inst_array[5] = 0;
+            string stage_in[5] = 0;
+            string stringstage_out[5] = 0;
+        }
+
 
         void clock();
 
@@ -55,8 +70,10 @@ class Pipeline{
     private:
 
         Instruction inst_array[5];
-        signed int stage_out[5];  //will this be larger than 32?
-        signed int stage_in[5];
-        signed int fetched_instruction;
+        signed int stage_out[5]={0};  //will this be larger than 32?
+        signed int stage_in[5]={0};
+        signed int fetched_instruction={0};
 
 };
+
+#endif //INSTRUCTION_H

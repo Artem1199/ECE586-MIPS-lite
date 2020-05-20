@@ -14,7 +14,7 @@ signed int Reg[32] = {0};
 #define MEM 3
 #define WB 4
 
-#define PC_OFFSET 1;
+#define PC_OFFSET 1
 
 unsigned int memory_image[5]{
     0x3142FFFF,
@@ -43,7 +43,7 @@ Instruction::Instruction(){
 }
 
 
-void Instruction::decode (signed int hexin){
+void Instruction::decode (string hexin){
 
     signed int x;
     stringstream ss;
@@ -170,7 +170,7 @@ void Pipeline::IF_stage(){
 
 void Pipeline::ID_stage(){
 
-    inst_array[ID].decode(stage_in[ID]);
+   // inst_array[ID].decode(stage_in[ID]);
 
 }
 

@@ -29,24 +29,25 @@ unsigned int memory_image[5]{
     // LDW R1 0(R2)
     // SUB R10 R11 R12
     // ADD R3, R1, R5  *1 stalls 
-
     
 };
 
-Instruction::Instruction (unsigned int a){
-    address = a;
+Instruction::Instruction(){
     operation = NOP;
     rs = 0;
     rt = 0;
-    rd = 0;
     immediate = 0;
-};
+    r_instruction = true;
+    i_instruction = false;
+    halt_flag = false;
+}
+
 
 void Instruction::decode (signed int hexin){
 
     signed int x;
-    std::stringstream ss;
-    ss << std:: hex << hexin;
+    stringstream ss;
+    ss << hex << hexin;
     ss >> x;
 
     operation = static_cast<e_opCode>(x >> 26);
@@ -69,8 +70,6 @@ void Instruction::decode (signed int hexin){
 };
 
 string Instruction::stringify(){
-
-
     string a;
     switch (operation)
     {
@@ -95,9 +94,24 @@ string Instruction::stringify(){
         break;
     }
 
-    a += " R"
-    a += to_string()
+    if (r_instruction == true){
+        a += " R";
+        a += to_string(rd);
+        a += " R";
+        a += to_string(rs);
+        a += " R";
+        a += to_string(rt);
 
+    } else {
+        a += " R";
+        a += to_string(rt);
+        a += " #";
+        a += to_string(immediate);
+        a += "(R";
+        a += to_string(rs);
+        a += ")";
+    }
+    return a;
 
 }
 
@@ -117,10 +131,12 @@ void Instruction::print(){
 };
 
 Pipeline::Pipeline(){
-    string inst_array[5];
-    string stage_in[5] = 0;
-    string stringstage_out[5] = 0;
+    Instruction inst_array[5];
+    string stage_in[5];
+    string stringstage_out[5];
 };
+
+
 
 void Pipeline::clock(){
 
@@ -143,7 +159,7 @@ void Pipeline::IF_stage(){
     // Condition 1: check if PC count is out side mem range and provide a halt
     // Condition 2: contine if PC cound is within Memory range
         // Task: bitwise shit to get instruction from memory 
-    inst_array[ID] = Instruction(PC);
+    //inst_array[ID] = Instruction(PC);
 
     stage_out[IF] = memory_image[PC];
 
@@ -229,7 +245,8 @@ void Pipeline::EX_stage(){
         // if not on of opcodes then HALT is equal to true '1'
         halt_flag = 1;
     }
-    return halt_flag;    // need to figure this out
+
+    //return halt_flag;    // need to figure this out
 }
 
 void Pipeline::MEM_stage(){
@@ -294,23 +311,6 @@ void Pipeline::visualization(){
 
     cout << "|------IF------|------ID------|------EX------|-----MEM------|------WB------|" << "\n";
     cout << "|--------------|--------------|--------------|--------------|--------------|" << "\n";
-    cout << "| " << inst_array[IF].operation << " " << inst_array[IF].rs << " " << inst_array[IF].rt << " " << inst_array[IF].immediate;
     cout << "| ";
 
 };
-
-
-/** int main()
-
-{
-
-    Instruction a(0x3142FFFF);  // operation: 12 Rs: 10 Rt: 2 Immediate: -1
-     a = Instruction(0xFF853000);
-    
-    // Pipeline mips();
-
-    // mips.ID_stage;
-
-    a.print();
-            return 0;
- **/

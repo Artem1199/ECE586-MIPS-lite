@@ -25,7 +25,8 @@ enum e_stages {
 class Instruction{
 
     public:
-    Instruction(unsigned int a);
+    Instruction();
+    //Instruction(unsigned int a);
     
     string stringify ();
     void print();
@@ -40,7 +41,7 @@ class Instruction{
         bool r_instruction;
         bool i_instruction;
         bool halt_flag;
-        signed int address;
+        // signed int address; - I don't believe having the instruction store it's own address is proper
 
         friend class Pipeline;
 
@@ -50,11 +51,7 @@ class Pipeline{
 
     public:
 
-        Pipeline(){
-            string inst_array[5] = 0;
-            string stage_in[5] = 0;
-            string stringstage_out[5] = 0;
-        }
+        Pipeline();
 
 
         void clock();

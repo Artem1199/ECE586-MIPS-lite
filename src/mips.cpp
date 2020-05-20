@@ -22,6 +22,15 @@ unsigned int memory_image[5]{
     0x00853000,
     0x00853000,
     0x00853000,
+
+    // LDW R1 0(R2) 
+    // ADD R3, R1, R5  *2 stalls
+
+    // LDW R1 0(R2)
+    // SUB R10 R11 R12
+    // ADD R3, R1, R5  *1 stalls 
+
+    
 };
 
 Instruction::Instruction (unsigned int a){
@@ -56,48 +65,33 @@ void Instruction::decode (signed int hexin){
 
 string Instruction::stringify(){
 
+
+    string a;
     switch (operation)
     {
-    case ADD:
-        "ADD";
-        break;
-    case SUB:
-        "SUB";
-        break;
-    case MUL:
-        "MUL";
-        break;
-    case OR:
-        "OR";
-        break;
-    case AND:
-    case XOR:
-        Reg[inst_array[WB].rd] = stage_in[WB];
-        break;
-
-    case ADDI:
-    case SUBI:
-    case MULI:
-    case ORI:
-    case ANDI:
-    case XORI:
-    case LDW:
-        Reg[inst_array[WB].rt] = stage_in[WB];
-        break;
-
-    case JR:
-        PC = stage_in[WB];
-        break; 
-
-    case BEQ:
-    case BZ:
-        PC += stage_in[WB] * PC_OFFSET - 4 * PC_OFFSET;
-        break;
-        
-    default:
+    case ADD:a = "ADD";break;
+    case SUB:a = "SUB";break;
+    case MUL:a = "MUL";break;
+    case OR:a = "OR";break;
+    case AND:a = "AND";break;
+    case XOR:a = "OR";break;
+    case ADDI:a = "ADDI";break;
+    case SUBI:a = "SUBI";break;
+    case MULI:a = "MULI";break;
+    case ORI:a = "ORI";break;
+    case ANDI:a = "ANDI";break;
+    case XORI:a = "XORI";break;
+    case LDW:a = "LDW";break;
+    case JR:a = "JR";break; 
+    case BEQ:a = "BEQ";break;
+    case BZ:a = "BZ";break;
+    case NOP:a = "NOP";break;
+    default: a = "ERR";
         break;
     }
 
+    a += " R"
+    a += to_string()
 
 
 }
@@ -147,6 +141,7 @@ void Pipeline::IF_stage(){
     inst_array[ID] = Instruction(PC);
 
     stage_out[IF] = memory_image[PC];
+
     PC + PC_OFFSET;
 
     return;
@@ -207,7 +202,9 @@ void Pipeline::EX_stage(){
             stage_out[EX] = inst_array[EX].immediate;
         } else {
             stage_out[EX] = 0;
-        }     
+        }
+        // Add check for PC
+
         break;
     case BEQ:
         if (Reg[inst_array[EX].rs] == Reg[inst_array[EX].rt])
@@ -216,6 +213,8 @@ void Pipeline::EX_stage(){
         } else {
             stage_out[EX] = 0;
         }
+        // Add check for PC 
+
         break;
     case JR:
         stage_out[EX] = Reg[inst_array[EX].rs];
@@ -224,6 +223,8 @@ void Pipeline::EX_stage(){
     default:
         break;
     }
+
+
 }
 
 void Pipeline::MEM_stage(){
@@ -304,7 +305,7 @@ int main()
 
     Pipeline mips();
 
-    mips.ID_stage;
+    //mips.ID_stage;
 
     a.print();
             return 0;

@@ -30,7 +30,7 @@ class Instruction{
     
     string stringify ();
     void print();
-    void decode(signed int a);
+    void decode(string a);
 
     private:
         e_opCode operation;
@@ -67,9 +67,9 @@ class Pipeline{
     private:
 
         Instruction inst_array[5];
-        signed int stage_out[5]={0};  //will this be larger than 32?
-        signed int stage_in[5]={0};
-        signed int fetched_instruction={0};
+        signed int stage_out[5];  //will this be larger than 32?
+        signed int stage_in[5];
+        signed int fetched_instruction;
 
 };
 

@@ -156,9 +156,11 @@ void Pipeline::clock(){
 }
 
 void Pipeline::IF_stage(){
+    //Rule: Add, load, and store => Fetch the instruction and increment the program counter
+
     // Condition 1: check if PC count is out side mem range and provide a halt
-    // Condition 2: contine if PC cound is within Memory range
-        // Task: bitwise shit to get instruction from memory 
+    // Condition 2: contine if PC count is within Memory range
+    // Task: bitwise shit to get instruction from memory 
     //inst_array[ID] = Instruction(PC);
 
     stage_out[IF] = memory_image[PC];
@@ -169,12 +171,32 @@ void Pipeline::IF_stage(){
 }
 
 void Pipeline::ID_stage(){
+//EX. ADD: ex: ADD R3, R4, R5; 
+    // Decode the instruction in IR to determine the operation to 
+    // be performed (add). Read the contents of registers R4 and R5 
+
+//EX. LOAD: Load R5, X(R7) R5 <- [[R7]+ x
+    //Decode the instruction in IR to determine the operation to 
+    // be performed (load). Read the contents of register R7.
+
+//Ex. STORE: Store R6, X(R8): X+[R8] <- [R6]
+    // Decode the instruction in IR to determine the operation to
+    // be performed (store). Read the contents of registers R6 and R8.
 
     inst_array[ID].decode(stage_in[ID]);
 
 }
 
 void Pipeline::EX_stage(){
+//EX. ADD: ex: ADD R3, R4, R5; 
+    // Compute the sum [R4] + [R5]
+
+//EX. LOAD: Load R5, X(R7) R5 <- [[R7]+ x
+    // Add the immediate value X to the contents of R7
+
+//Ex. STORE: Store R6, X(R8): X+[R8] <- [R6]
+    // Compute the effective address X + [R8]
+
     int halt_flag = 0;
     switch (inst_array[EX].operation)
     {
@@ -250,6 +272,15 @@ void Pipeline::EX_stage(){
 }
 
 void Pipeline::MEM_stage(){
+//EX. ADD: ex: ADD R3, R4, R5; 
+    // No action, since there are no memory operands
+
+//EX. LOAD: Load R5, X(R7) R5 <- [[R7]+ x
+    // Use the sum X+[R7] as the effective address of the 
+    // source operand, read the contents of that location from memory
+
+//Ex. STORE: Store R6, X(R8): X+[R8] <- [R6]
+    // Store the contents of register R6 into memory location X + [R8]
 
     switch (inst_array[MEM].operation)
     {
@@ -269,6 +300,14 @@ void Pipeline::MEM_stage(){
 }
 
 void Pipeline::WB_stage(){
+//EX. ADD: ex: ADD R3, R4, R5; 
+    // Write the result into register R3
+
+//EX. LOAD: Load R5, X(R7) R5 <- [[R7]+ x
+    // Write the data received from memory into register R5
+
+//Ex. STORE: Store R6, X(R8): X+[R8] <- [R6]
+    // No action
     
     switch (inst_array[WB].operation)
     {

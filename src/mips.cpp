@@ -1,7 +1,3 @@
-#include <iostream>
-#include <sstream>
-#include <bitset>
-#include <string>
 #include "mips.h"
 
 using namespace std;
@@ -16,7 +12,7 @@ signed int Reg[32] = {0};
 
 #define PC_OFFSET 1
 
-unsigned int memory_image[5]{
+unsigned int memory_image[5] = {
     0x3142FFFF,
     0x00853000,
     0x00853000,
@@ -31,6 +27,7 @@ unsigned int memory_image[5]{
     // ADD R3, R1, R5  *1 stalls 
     
 };
+
 
 Instruction::Instruction(){
     operation = NOP;
@@ -70,49 +67,48 @@ void Instruction::decode (string hexin){
 };
 
 string Instruction::stringify(){
-    string a;
+    string inst_string;
     switch (operation)
     {
-    case ADD:a = "ADD";break;
-    case SUB:a = "SUB";break;
-    case MUL:a = "MUL";break;
-    case OR:a = "OR";break;
-    case AND:a = "AND";break;
-    case XOR:a = "OR";break;
-    case ADDI:a = "ADDI";break;
-    case SUBI:a = "SUBI";break;
-    case MULI:a = "MULI";break;
-    case ORI:a = "ORI";break;
-    case ANDI:a = "ANDI";break;
-    case XORI:a = "XORI";break;
-    case LDW:a = "LDW";break;
-    case JR:a = "JR";break; 
-    case BEQ:a = "BEQ";break;
-    case BZ:a = "BZ";break;
-    case NOP:a = "NOP";break;
-    default: a = "ERR";
+    case ADD:inst_string = "ADD";break;
+    case SUB:inst_string = "SUB";break;
+    case MUL:inst_string = "MUL";break;
+    case OR:inst_string = "OR";break;
+    case AND:inst_string = "AND";break;
+    case XOR:inst_string = "OR";break;
+    case ADDI:inst_string = "ADDI";break;
+    case SUBI:inst_string = "SUBI";break;
+    case MULI:inst_string = "MULI";break;
+    case ORI:inst_string = "ORI";break;
+    case ANDI:inst_string = "ANDI";break;
+    case XORI:inst_string = "XORI";break;
+    case LDW:inst_string = "LDW";break;
+    case JR:inst_string = "JR";break; 
+    case BEQ:inst_string = "BEQ";break;
+    case BZ:inst_string = "BZ";break;
+    case NOP:inst_string = "NOP";break;
+    default: inst_string = "ERR";
         break;
     }
 
     if (r_instruction == true){
-        a += " R";
-        a += to_string(rd);
-        a += " R";
-        a += to_string(rs);
-        a += " R";
-        a += to_string(rt);
+        inst_string += " R";
+        inst_string += to_string(rd);
+        inst_string += " R";
+        inst_string += to_string(rs);
+        inst_string += " R";
+        inst_string += to_string(rt);
 
     } else {
-        a += " R";
-        a += to_string(rt);
-        a += " #";
-        a += to_string(immediate);
-        a += "(R";
-        a += to_string(rs);
-        a += ")";
+        inst_string += " R";
+        inst_string += to_string(rt);
+        inst_string += " #";
+        inst_string += to_string(immediate);
+        inst_string += "(R";
+        inst_string += to_string(rs);
+        inst_string += ")";
     }
-    return a;
-
+    return inst_string;
 }
 
 void Instruction::print(){
@@ -138,14 +134,36 @@ Pipeline::Pipeline(){
 
 
 
+
+void Pipeline::run(vector<string> memory_image){
+
+    int a = 0;
+    Instruction inst;
+
+    for (auto i : memory_image){
+       // inst.decode(i);
+      //  string b = inst.stringify();
+      //  cout << a++ << " " << b << " " << i << "\n";
+
+        IF_stage();
+        ID_stage();
+        EX_stage();
+        MEM_stage();
+        WB_stage();
+        clock();
+        visualization();
+
+    }
+
+
+}
+
 void Pipeline::clock(){
 
-    // Simulate instruction moving to next stage after clock cycle
-    inst_array[IF] = inst_array[WB];
-    inst_array[ID] = inst_array[IF];
-    inst_array[EX] = inst_array[ID];
-    inst_array[MEM] = inst_array[EX];
     inst_array[WB] = inst_array[MEM];
+    inst_array[MEM] = inst_array[EX];
+    inst_array[EX] = inst_array[ID];
+    inst_array[ID] = inst_array[IF];
 
     // Simulate data moving to next stage after clock cycle
     stage_in[IF] = stage_out[WB];
@@ -348,8 +366,14 @@ void Pipeline::WB_stage(){
 void Pipeline::visualization(){
 
 
-    cout << "|------IF------|------ID------|------EX------|-----MEM------|------WB------|" << "\n";
-    cout << "|--------------|--------------|--------------|--------------|--------------|" << "\n";
-    cout << "| ";
+    cout << "|-------IF-------|-------ID-------|-------EX-------|------MEM-------|-------WB-------|" << "\n";
+    cout << "|----------------|----------------|----------------|----------------|----------------|" << "\n";
+    cout << "|- " << inst_array[IF].stringify() << " -|- " << inst_array[ID].stringify() << " -|- " 
+                    << inst_array[EX].stringify() << " -|- " << inst_array[MEM].stringify() << " -|- "
+                        << inst_array[WB].stringify() << " -|" << "\n";
+    cout << "|----------------|----------------|----------------|----------------|----------------|" << "\n";
+    //cout << "\033[1;31mbold red text\033[0m\n";
+    sleep_for(1000ms);
+    system("clear");
 
 };

@@ -12,7 +12,7 @@ int main()
 {
     Instruction a;
 
-    string array[image_size];
+    vector<string> memory_image;
     short loop_input;
     int i = 1;
     string line;
@@ -23,29 +23,18 @@ int main()
         
             getline (myfile,line);
 
-            a.decode(line);
-            string b = a.stringify();
-            cout << i++ << " " << b << " " << line << "\n";       ;
-            
-           // cout << line << endl;
-           // a.decode(line);
-           // cout << a.stringify()  << "\n";
-
-                 for (loop_input = 0; loop_input < image_size; loop_input++) {              
-                     array[loop_input]=line;
-                 };  
+                // for (loop_input = 0; loop_input < image_size; loop_input++) {              
+                     memory_image.push_back(line);
+                // };  
         }
         myfile.close(); // closing the file
     }
         else cout << "Unable to open file";
                 system("PAUSE");
 
-   // Instruction a;
-   // a.decode(0x3142FFFF);
-   // cout << a.stringify();
+    Pipeline pip; 
 
-   cout << array[1] << "test";
-
+    pip.run(memory_image);
 
 
                 return 0; 

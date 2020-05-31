@@ -12,22 +12,6 @@ signed int Reg[32] = {0};
 
 #define PC_OFFSET 1
 
-unsigned int memory_image[5] = {
-    0x3142FFFF,
-    0x00853000,
-    0x00853000,
-    0x00853000,
-    0x00853000,
-
-    // LDW R1 0(R2) 
-    // ADD R3, R1, R5  *2 stalls
-
-    // LDW R1 0(R2)
-    // SUB R10 R11 R12
-    // ADD R3, R1, R5  *1 stalls 
-    
-};
-
 
 Instruction::Instruction(){
     operation = NOP;
@@ -132,17 +116,14 @@ Pipeline::Pipeline(){
     string stage_out[5];
 };
 
-void Pipeline::run(vector<string> memory_image){
+void Pipeline::run(vector<signed int> memory_image){
 
-    int a = 0;
-    Instruction inst;
+   
+    memory = memory_image;
 
+    int i = 0;
 
-    system("clear");
-    for (auto i : memory_image){
-       // inst.decode(i);
-      //  string b = inst.stringify();
-      //  cout << a++ << " " << b << " " << i << "\n";
+    while(!halt_flag) {
 
         IF_stage();
         ID_stage();
@@ -150,11 +131,16 @@ void Pipeline::run(vector<string> memory_image){
         MEM_stage();
         WB_stage();
         
-        visualization();
+       // visualization();
         clock();
 
+        cout << i++ << " " << inst_array[WB].stringify() << "\n";
+    
     }
-
+        if(halt_flag) {
+            cout << "HALT REACHED!" << "\n";
+            cout << inst_array[WB].stringify(); 
+        }
 
 }
 
@@ -181,9 +167,9 @@ void Pipeline::IF_stage(){
     // Task: bitwise shit to get instruction from memory 
     //inst_array[ID] = Instruction(PC);
 
-    stage_out[IF] = memory_image[PC];
+    stage_out[IF] = memory[PC];
 
-    PC + PC_OFFSET;
+    PC += PC_OFFSET;
 
     return;
 }
@@ -282,8 +268,9 @@ void Pipeline::EX_stage(){
         break;
 
     default:
+        stage_out[EX] = 0;
         // if not on of opcodes then HALT is equal to true '1'
-        halt_flag = 1;
+       // halt_flag = 1;
     }
 
     //return halt_flag;    // need to figure this out
@@ -303,10 +290,10 @@ void Pipeline::MEM_stage(){
     switch (inst_array[MEM].operation)
     {
     case LDW:
-        stage_out[MEM] = memory_image[stage_in[MEM]];
+        stage_out[MEM] = memory[stage_in[MEM]];
         break;
     case STW:
-        memory_image[stage_in[MEM]] = Reg[inst_array[MEM].rt];
+        memory[stage_in[MEM]] = Reg[inst_array[MEM].rt];
         break;
     
     default:
@@ -356,6 +343,9 @@ void Pipeline::WB_stage(){
     case BZ:
         PC += stage_in[WB] * PC_OFFSET - 4 * PC_OFFSET;
         break;
+    case HALT:
+        halt_flag = true;
+        break;
         
     default:
         break;
@@ -365,15 +355,11 @@ void Pipeline::WB_stage(){
 
 void Pipeline::visualization(){
 
-
-    cout << "|-------IF-------|-------ID-------|-------EX-------|------MEM-------|-------WB-------|" << "\n";
-    cout << "|----------------|----------------|----------------|----------------|----------------|" << "\n";
     cout << "|- " << inst_array[IF].stringify() << " -|- " << inst_array[ID].stringify() << " -|- " 
                     << inst_array[EX].stringify() << " -|- " << inst_array[MEM].stringify() << " -|- "
                         << inst_array[WB].stringify() << " -|" << "\n";
-    cout << "|----------------|----------------|----------------|----------------|----------------|" << "\n";
     //cout << "\033[1;31mbold red text\033[0m\n";
-    sleep_for(1000ms);
+    sleep_for(2000ms);
     system("clear");
 
 };

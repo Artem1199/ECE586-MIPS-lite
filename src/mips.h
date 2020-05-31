@@ -23,7 +23,7 @@ enum e_opCode {
 
     BZ = 14, BEQ = 15, JR = 16, HALT = 17,
 
-    NOP = 100,
+    NOP = 999,
 };
 
 enum e_stages {
@@ -62,7 +62,7 @@ class Pipeline{
     public:
 
 
-        void run(vector<string> memory_image);
+        void run(vector<signed int> memory_image);
 
         Pipeline();
 
@@ -77,12 +77,16 @@ class Pipeline{
 
         void visualization();
 
+        bool halt_flag = false;
+
     private:
 
         Instruction inst_array[5];
         signed int stage_out[5];  //will this be larger than 32?
         signed int stage_in[5];
         signed int fetched_instruction;
+
+        vector<signed int> memory;
         
 
 };

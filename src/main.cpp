@@ -11,6 +11,7 @@ int main()
 
 {
     Instruction a;
+    signed int N_inst;
 
     vector<signed int> memory_image;
     short loop_input;
@@ -25,12 +26,17 @@ int main()
 
                 // for (loop_input = 0; loop_input < image_size; loop_input++) {              
                      
-                     signed int x;
+                     
+                     
                         stringstream ss;
                         ss << hex << line;
-                        ss >> x;
+                        ss >> N_inst;
                      
-                     memory_image.push_back(line);
+                     memory_image.push_back(N_inst);
+                     a.decode(N_inst);
+                cout << i << " "<< a.stringify() << "\n";
+
+                i++;
                 // };  
         }
         myfile.close(); // closing the file

@@ -4,6 +4,8 @@ using namespace std;
 
 unsigned int PC = 0;
 signed int Reg[32] = {0};
+array<signed int, MEMORY_SIZE> memory = {0};
+
 #define IF 0
 #define ID 1
 #define EX 2
@@ -19,14 +21,13 @@ Instruction::Instruction(){
     rt = 0;
     immediate = 0;
     r_instruction = true;
-    i_instruction = false;
     halt_flag = false;
 }
 
 
 void Instruction::decode (signed int hexin){
 
-    signed int x;
+    signed int x = hexin;
     stringstream ss; 
     ss << hex << hexin; // convert hex to signed int
     ss >> x;
@@ -40,13 +41,13 @@ void Instruction::decode (signed int hexin){
     // four conditon, i type instruction, i type instruction, or HALT
     if ((operation == ADD) or (operation == SUB) or (operation == MUL) or (operation == OR) or (operation == AND) or (operation == XOR)) {
         r_instruction = true;
-        i_instruction = false;
     } else if ((operation == ADDI) or (operation == SUBI) or (operation == MULI) or (operation == ORI) or (operation == ANDI) or (operation == XORI) or (operation == LDW) or (operation == STW) or (operation == BZ) or  (operation == BEQ) or (operation == JR) or (operation == HALT)) {
-        i_instruction = true;
         r_instruction = false;
-    } else { // halt is confirmed
-        i_instruction = true;
-        r_instruction = false;
+    } else {
+        cout << "Error: not an r or i instruction, ";
+        cout << operation << "\n";
+        cout << "Instruction: " << hexin << "\n";
+        cout << "PC: " << PC << "\n";
         halt_flag = 1;
     }
 };
@@ -121,11 +122,24 @@ Pipeline::Pipeline(){
 };
 
 void Pipeline::run(array<signed int, MEMORY_SIZE> mem_array){
+    
     memory = mem_array;
 
-    int i = 0;
-
-
+    //Init the pipeline.
+    IF_stage();
+    clock();
+    IF_stage();
+    ID_stage();
+    clock();
+    IF_stage();
+    ID_stage();
+    EX_stage();
+    clock();
+    IF_stage();
+    ID_stage();
+    EX_stage();
+    MEM_stage();
+    clock();
 
     while(!halt_flag) {
 
@@ -139,13 +153,14 @@ void Pipeline::run(array<signed int, MEMORY_SIZE> mem_array){
         
        // visualization();
         clock();
-
      //   cout << i++ << " " << inst_array[WB].stringify() << "\n";
     }
-       // if(halt_flag) {
-      //      cout << "HALT REACHED!" << "\n";
-         //   cout << inst_array[WB].stringify(); 
-     //   }
+
+    if (halt_flag){
+        cout << "HALT REACHED" << "\n";
+    }
+
+    pip_count.print();
 
 }
 
@@ -175,8 +190,6 @@ void Pipeline::IF_stage(){
     stage_out[IF] = memory[PC];
 
     PC += PC_OFFSET;
-
-    return;
 }
 
 void Pipeline::ID_stage(){
@@ -191,7 +204,6 @@ void Pipeline::ID_stage(){
 //Ex. STORE: Store R6, X(R8): X+[R8] <- [R6]
     // Decode the instruction in IR to determine the operation to
     // be performed (store). Read the contents of registers R6 and R8.
-
     inst_array[ID].decode(stage_in[ID]);
 
 }
@@ -205,6 +217,7 @@ void Pipeline::EX_stage(){
 
 //Ex. STORE: Store R6, X(R8): X+[R8] <- [R6]
     // Compute the effective address X + [R8]
+
 
     int halt_flag = 0;
     switch (inst_array[EX].operation)
@@ -295,9 +308,18 @@ void Pipeline::MEM_stage(){
     switch (inst_array[MEM].operation)
     {
     case LDW:
+        if ((stage_in[MEM] < 0)||(stage_in[MEM] > MEMORY_SIZE - PC_OFFSET)){
+            cout << "Error: outside memory bounds" << "\n";
+            halt_flag = 1;
+        };
         stage_out[MEM] = memory[stage_in[MEM]];
+
         break;
     case STW:
+        if ((stage_in[MEM] < 0)||(stage_in[MEM] > MEMORY_SIZE - PC_OFFSET)){
+            cout << "Error: outside memory bounds" << "\n";
+            halt_flag = 1;
+        };
         memory[stage_in[MEM]] = Reg[inst_array[MEM].rt];
         break;
     
@@ -346,6 +368,7 @@ void Pipeline::WB_stage(){
     case BEQ:
     case BZ:
         PC += stage_in[WB] * PC_OFFSET - 4 * PC_OFFSET;
+
         break;
     case HALT:
         halt_flag = true;
@@ -371,7 +394,6 @@ void Pipeline::visualization(){
 
 Pipeline_counter::Pipeline_counter(){
 
-    total_inst = 0;
     arith_inst = 0;
     logic_inst = 0;
     mem_inst = 0;
@@ -389,7 +411,7 @@ switch (inst.operation)
     {
     case ADD:
     case SUB:
-    case MUL: arith_inst += 1; break;
+    case MUL: arith_inst += 1;break;
     case OR:
     case AND:
     case XOR:logic_inst += 1;break;
@@ -399,8 +421,10 @@ switch (inst.operation)
     case ORI:
     case ANDI:
     case XORI:logic_inst += 1;break;
-    case LDW:
-    case STW:mem_inst += 1; break;
+    case LDW: 
+    case STW:        
+        accessed_mem.push_back(inst.rs + inst.immediate);
+        mem_inst += 1; break;
     case JR:
     case BEQ:
     case BZ:
@@ -409,13 +433,41 @@ switch (inst.operation)
     default: debug += 1;
         break;
     }
-
     accessed_reg[inst.rs] = 1;
     accessed_reg[inst.rt] = 1;
     accessed_reg[inst.rd] = 1;
 
-    
+}
 
+void Pipeline_counter::print(){
 
+    cout << "\n";
+
+    cout << "*Instruction counts* " << "\n";
+
+    cout << "Total number of instructions: " << cont_inst + mem_inst + logic_inst + arith_inst << "\n";
+    cout << "Arithmetic instructions: " << arith_inst << "\n";
+    cout << "Logical instructions: " << logic_inst << "\n";
+    cout << "Memory access instructions: " << mem_inst << "\n";
+    cout << "Control transfer instructions: " << cont_inst << "\n";
+    cout << "DEBUG: " << debug << "\n" ;
+    cout << "\n";
+
+    cout << "*Final register state*" << "\n";
+
+    for (int i = 0; i < 32; i++){
+        if (accessed_reg[i]){ 
+            cout << "R" << i << ": " << Reg[i] << "\n";
+        }
+    }
+
+    cout << "\n";
+    cout << "*Final memory state*" << "\n";
+
+    while(!accessed_mem.empty()){
+        cout << "Address: " << accessed_mem.back() << ", Contents: "<< memory[accessed_mem.back()] << "\n";
+        accessed_mem.pop_back();
+
+    };
 
 }

@@ -53,7 +53,6 @@ class Instruction{
         int rd;
         short immediate;
         bool r_instruction;
-        bool i_instruction;
         bool halt_flag;
         // signed int address; - I don't believe having the instruction store it's own address is proper
 
@@ -77,8 +76,6 @@ class Pipeline_counter{
         int mem_inst;
         int cont_inst;
         int debug;
-
-        int total_inst = cont_inst + mem_inst + logic_inst + arith_inst;
 
         array<short, 32> accessed_reg;
         vector<short> accessed_mem;
@@ -111,7 +108,7 @@ class Pipeline{
         array<signed int, 5> stage_out;  //will this be larger than 32?
         array<signed int,5> stage_in;
         array<signed int,5> fetched_instruction;
-        array<signed int, MEMORY_SIZE> memory;
+
 
         Pipeline_counter pip_count;
 };

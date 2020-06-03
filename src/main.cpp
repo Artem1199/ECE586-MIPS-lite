@@ -10,11 +10,13 @@ array <signed int, MEMORY_SIZE> mem_array = {0};
 int main()
 
 {
+    // clear terminal
+    system("clear");
     Instruction a;
     signed int N_inst;
     short loop_input = 0;
     string line;
-    ifstream myfile ("all_inst.txt");
+    ifstream myfile ("image.txt");
     if (myfile.is_open())
     {
         while (! myfile.eof()){
@@ -40,7 +42,7 @@ int main()
                 // };  
         }
 
-        for (int i = 1023; i >= 0; i--) 
+       for (int i = 1023; i >= 0; i--) 
             {
                 a.decode(mem_array[i*4]);
                 cout << i*4 << " " << a.stringify() << "\n";

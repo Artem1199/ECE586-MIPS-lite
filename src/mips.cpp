@@ -308,10 +308,12 @@ void Pipeline::MEM_stage(){
     switch (inst_array[MEM].operation)
     {
     case LDW:
+        // check to see that the array pointer isn't outside memory
         if ((stage_in[MEM] < 0)||(stage_in[MEM] > MEMORY_SIZE - PC_OFFSET)){
             cout << "Error: outside memory bounds" << "\n";
             halt_flag = 1;
         };
+        // TO DO: fix reading values from memory should be hex value
         stage_out[MEM] = memory[stage_in[MEM]];
 
         break;
@@ -320,6 +322,7 @@ void Pipeline::MEM_stage(){
             cout << "Error: outside memory bounds" << "\n";
             halt_flag = 1;
         };
+        // TO DO: fix writing values back to memory, this should be a hex value
         memory[stage_in[MEM]] = Reg[inst_array[MEM].rt];
         break;
     
@@ -433,6 +436,7 @@ switch (inst.operation)
     default: debug += 1;
         break;
     }
+    //marks that the register was used in this instruction
     accessed_reg[inst.rs] = 1;
     accessed_reg[inst.rt] = 1;
     accessed_reg[inst.rd] = 1;

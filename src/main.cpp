@@ -17,7 +17,7 @@ int main()
     short loop_input;
     int i = 1;
     string line;
-    ifstream myfile ("image.txt");
+    ifstream myfile ("all_inst.txt");
     if (myfile.is_open())
     {
         while (! myfile.eof()){
@@ -34,7 +34,7 @@ int main()
                      
                      memory_image.push_back(N_inst);
                      a.decode(N_inst);
-                cout << i << " "<< a.stringify() << "\n";
+               cout << i << " "<< a.stringify() << "\n";
 
                 i++;
                 // };  

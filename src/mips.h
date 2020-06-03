@@ -7,6 +7,7 @@
 #include <vector>
 #include <chrono>
 #include <thread>
+#include <stdint.h>
 
 using namespace std;
 using namespace std::this_thread;     // sleep_for, sleep_until
@@ -44,10 +45,10 @@ class Instruction{
 
     private:
         e_opCode operation;
-        signed int rs;
-        signed int rt;
-        signed int rd;
-        signed int immediate;
+        long rs;
+        long rt;
+        long rd;
+        short immediate;
         bool r_instruction;
         bool i_instruction;
         bool halt_flag;

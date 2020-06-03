@@ -26,16 +26,22 @@ Instruction::Instruction(){
 
 void Instruction::decode (signed int hexin){
 
-    signed int x;
+    signed x;
     stringstream ss;
     ss << hex << hexin;
     ss >> x;
 
-    operation = static_cast<e_opCode>(x >> 26);
-    rs = (x<<6)>>27;
-    rt = (x<<11)>>27;
-    rd = (x<<16)>>27;
-    immediate = (x<<16)>>16;
+    operation = static_cast<e_opCode>((x >> 26) &  0b111111);
+
+    // cout << x << "\n";
+    // cout << (x << 6)  <<"\n";
+    // cout << ((x<<6)>>33) << "\n";
+
+
+    rs = (x >> 21) & 0b11111;  //shift values to the right and & to remove values to the left
+    rt = (x >> 16) & 0b11111;
+    rd = (x >> 11) & 0b11111;
+    immediate = (x << 16)>>16;
     // four conditon, i type instruction, i type instruction, or HALT
     if ((operation == ADD) or (operation == SUB) or (operation == MUL) or (operation == OR) or (operation == AND) or (operation == XOR)) {
         r_instruction = true;
@@ -59,7 +65,7 @@ string Instruction::stringify(){
     case MUL:inst_string = "MUL";break;
     case OR:inst_string = "OR";break;
     case AND:inst_string = "AND";break;
-    case XOR:inst_string = "OR";break;
+    case XOR:inst_string = "XOR";break;
     case ADDI:inst_string = "ADDI";break;
     case SUBI:inst_string = "SUBI";break;
     case MULI:inst_string = "MULI";break;
@@ -71,6 +77,7 @@ string Instruction::stringify(){
     case BEQ:inst_string = "BEQ";break;
     case BZ:inst_string = "BZ";break;
     case NOP:inst_string = "NOP";break;
+    case HALT:inst_string = "HALT"; break;
     default: inst_string = "ERR";
         break;
     }
@@ -134,13 +141,12 @@ void Pipeline::run(vector<signed int> memory_image){
        // visualization();
         clock();
 
-        cout << i++ << " " << inst_array[WB].stringify() << "\n";
-    
+     //   cout << i++ << " " << inst_array[WB].stringify() << "\n";
     }
-        if(halt_flag) {
-            cout << "HALT REACHED!" << "\n";
-            cout << inst_array[WB].stringify(); 
-        }
+       // if(halt_flag) {
+      //      cout << "HALT REACHED!" << "\n";
+         //   cout << inst_array[WB].stringify(); 
+     //   }
 
 }
 

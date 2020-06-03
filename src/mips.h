@@ -15,6 +15,9 @@ using namespace std::chrono_literals; // ns, us, ms, s, h, etc.
 using std::chrono::system_clock;
 
 
+#define PC_OFFSET 4
+#define MEMORY_SIZE 1024 * PC_OFFSET
+
 enum e_opCode {
     ADD = 0, ADDI = 1, SUB = 2, SUBI = 3, MUL = 4, MULI = 5,
     
@@ -45,9 +48,9 @@ class Instruction{
 
     private:
         e_opCode operation;
-        long rs;
-        long rt;
-        long rd;
+        int rs;
+        int rt;
+        int rd;
         short immediate;
         bool r_instruction;
         bool i_instruction;
@@ -55,6 +58,30 @@ class Instruction{
         // signed int address; - I don't believe having the instruction store it's own address is proper
 
         friend class Pipeline;
+        friend class Pipeline_counter;
+
+};
+
+
+class Pipeline_counter{
+
+    public:
+        Pipeline_counter();
+        void count(Instruction inst);
+        void print();
+
+    private:
+        
+        int arith_inst;
+        int logic_inst;
+        int mem_inst;
+        int cont_inst;
+        int debug;
+
+        int total_inst = cont_inst + mem_inst + logic_inst + arith_inst;
+
+        array<short, 32> accessed_reg;
+        vector<short> accessed_mem;
 
 };
 
@@ -63,11 +90,9 @@ class Pipeline{
     public:
 
 
-        void run(vector<signed int> memory_image);
+        void run(array<signed int, MEMORY_SIZE> mem_array);
 
         Pipeline();
-
-
         void clock();
 
         void IF_stage();
@@ -75,21 +100,21 @@ class Pipeline{
         void EX_stage();
         void MEM_stage();
         void WB_stage();
-
         void visualization();
+        void count();
 
-        bool halt_flag = false;
-
-    private:
-
-        Instruction inst_array[5];
-        signed int stage_out[5];  //will this be larger than 32?
-        signed int stage_in[5];
-        signed int fetched_instruction;
-
-        vector<signed int> memory;
         
 
+    private:
+        bool halt_flag = false;
+        array<Instruction,5> inst_array;
+        array<signed int, 5> stage_out;  //will this be larger than 32?
+        array<signed int,5> stage_in;
+        array<signed int,5> fetched_instruction;
+        array<signed int, MEMORY_SIZE> memory;
+
+        Pipeline_counter pip_count;
 };
+
 
 #endif //INSTRUCTION_H

@@ -10,7 +10,7 @@ signed int Reg[32] = {0};
 #define MEM 3
 #define WB 4
 
-#define PC_OFFSET 1
+
 
 
 Instruction::Instruction(){
@@ -26,22 +26,17 @@ Instruction::Instruction(){
 
 void Instruction::decode (signed int hexin){
 
-    signed x;
-    stringstream ss;
-    ss << hex << hexin;
+    signed int x;
+    stringstream ss; 
+    ss << hex << hexin; // convert hex to signed int
     ss >> x;
 
-    operation = static_cast<e_opCode>((x >> 26) &  0b111111);
+    operation = static_cast<e_opCode>((x >> 26) &  0b111111);  // shift right and remove values
 
-    // cout << x << "\n";
-    // cout << (x << 6)  <<"\n";
-    // cout << ((x<<6)>>33) << "\n";
-
-
-    rs = (x >> 21) & 0b11111;  //shift values to the right and & to remove values to the left
+    rs = (x >> 21) & 0b11111;  // shift values to the right and & to remove values to the left
     rt = (x >> 16) & 0b11111;
     rd = (x >> 11) & 0b11111;
-    immediate = (x << 16)>>16;
+    immediate = (x << 16)>>16;  // keeps two's complement for values
     // four conditon, i type instruction, i type instruction, or HALT
     if ((operation == ADD) or (operation == SUB) or (operation == MUL) or (operation == OR) or (operation == AND) or (operation == XOR)) {
         r_instruction = true;
@@ -73,6 +68,7 @@ string Instruction::stringify(){
     case ANDI:inst_string = "ANDI";break;
     case XORI:inst_string = "XORI";break;
     case LDW:inst_string = "LDW";break;
+    case STW:inst_string = "STW";break;
     case JR:inst_string = "JR";break; 
     case BEQ:inst_string = "BEQ";break;
     case BZ:inst_string = "BZ";break;
@@ -83,19 +79,19 @@ string Instruction::stringify(){
     }
 
     if (r_instruction == true){
-        inst_string += " R";
+        inst_string += " Rd";
         inst_string += to_string(rd);
-        inst_string += " R";
+        inst_string += " Rs";
         inst_string += to_string(rs);
-        inst_string += " R";
+        inst_string += " Rt";
         inst_string += to_string(rt);
 
     } else {
-        inst_string += " R";
+        inst_string += " Rt";
         inst_string += to_string(rt);
         inst_string += " #";
         inst_string += to_string(immediate);
-        inst_string += "(R";
+        inst_string += "(Rs";
         inst_string += to_string(rs);
         inst_string += ")";
     }
@@ -121,14 +117,15 @@ Pipeline::Pipeline(){
     Instruction inst_array[5];
     string stage_in[5];
     string stage_out[5];
+    Pipeline_counter pip_count;
 };
 
-void Pipeline::run(vector<signed int> memory_image){
-
-   
-    memory = memory_image;
+void Pipeline::run(array<signed int, MEMORY_SIZE> mem_array){
+    memory = mem_array;
 
     int i = 0;
+
+
 
     while(!halt_flag) {
 
@@ -137,6 +134,8 @@ void Pipeline::run(vector<signed int> memory_image){
         EX_stage();
         MEM_stage();
         WB_stage();
+
+        pip_count.count(inst_array[WB]);
         
        // visualization();
         clock();
@@ -319,7 +318,6 @@ void Pipeline::WB_stage(){
 
 //Ex. STORE: Store R6, X(R8): X+[R8] <- [R6]
     // No action
-    
     switch (inst_array[WB].operation)
     {
     case ADD:
@@ -356,7 +354,6 @@ void Pipeline::WB_stage(){
     default:
         break;
     }
-    
 }
 
 void Pipeline::visualization(){
@@ -368,4 +365,57 @@ void Pipeline::visualization(){
     sleep_for(2000ms);
     system("clear");
 
-};
+}
+
+
+
+Pipeline_counter::Pipeline_counter(){
+
+    total_inst = 0;
+    arith_inst = 0;
+    logic_inst = 0;
+    mem_inst = 0;
+    cont_inst = 0;
+    debug = 0;
+
+    array<short, 32> accessed_reg = {0};
+    vector<short> accessed_mem = {0};
+
+}
+
+void Pipeline_counter::count(Instruction inst){
+
+switch (inst.operation)
+    {
+    case ADD:
+    case SUB:
+    case MUL: arith_inst += 1; break;
+    case OR:
+    case AND:
+    case XOR:logic_inst += 1;break;
+    case ADDI:
+    case SUBI:
+    case MULI:arith_inst += 1;break;
+    case ORI:
+    case ANDI:
+    case XORI:logic_inst += 1;break;
+    case LDW:
+    case STW:mem_inst += 1; break;
+    case JR:
+    case BEQ:
+    case BZ:
+    case NOP:;
+    case HALT:cont_inst += 1; break;
+    default: debug += 1;
+        break;
+    }
+
+    accessed_reg[inst.rs] = 1;
+    accessed_reg[inst.rt] = 1;
+    accessed_reg[inst.rd] = 1;
+
+    
+
+
+
+}

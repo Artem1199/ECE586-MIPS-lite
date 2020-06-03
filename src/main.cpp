@@ -5,17 +5,14 @@
 
 using namespace std;
 
-int image_size = 1030;
+array <signed int, MEMORY_SIZE> mem_array = {0};
 
 int main()
 
 {
     Instruction a;
     signed int N_inst;
-
-    vector<signed int> memory_image;
-    short loop_input;
-    int i = 1;
+    short loop_input = 0;
     string line;
     ifstream myfile ("all_inst.txt");
     if (myfile.is_open())
@@ -26,19 +23,29 @@ int main()
 
                 // for (loop_input = 0; loop_input < image_size; loop_input++) {              
                      
-                     
-                     
+                                          
                         stringstream ss;
                         ss << hex << line;
                         ss >> N_inst;
-                     
-                     memory_image.push_back(N_inst);
-                     a.decode(N_inst);
-               cout << i << " "<< a.stringify() << "\n";
 
-                i++;
+                     mem_array[loop_input*4] = N_inst;
+
+                     loop_input++;
+                    
+
+               //      memory_image.push_back(N_inst);
+              //       a.decode(N_inst);
+             //  cout << i << " "<< a.stringify() << "\n";
+
                 // };  
         }
+
+        for (int i = 1023; i >= 0; i--) 
+            {
+                a.decode(mem_array[i*4]);
+                cout << i*4 << " " << a.stringify() << "\n";
+            }
+
         myfile.close(); // closing the file
     }
         else cout << "Unable to open file";
@@ -46,7 +53,7 @@ int main()
 
     Pipeline pip; 
 
-    pip.run(memory_image);
+    pip.run(mem_array);
 
 
                 return 0; 

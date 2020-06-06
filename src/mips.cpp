@@ -265,6 +265,7 @@ void Pipeline::EX_stage(){
     case BZ:
         if (Reg[inst_array[EX].rs] == 0){
             stage_out[EX] = inst_array[EX].immediate;
+            PC += inst_array[EX].immediate * PC_OFFSET;
         } else {
             stage_out[EX] = 0;
         }
@@ -272,9 +273,10 @@ void Pipeline::EX_stage(){
 
         break;
     case BEQ:
-        if (Reg[inst_array[EX].rs] == Reg[inst_array[EX].rt])
+        if (Reg[inst_array[EX].rs] == Reg[inst_array[EX].rt])  // contents of the rs register == contents of rt regsiter
         {
             stage_out[EX] = inst_array[EX].immediate;
+            PC += inst_array[EX].immediate * PC_OFFSET;
         } else {
             stage_out[EX] = 0;
         }
@@ -283,6 +285,7 @@ void Pipeline::EX_stage(){
         break;
     case JR:
         stage_out[EX] = Reg[inst_array[EX].rs];
+        PC = Reg[inst_array[EX].rs];  // set PC to contents of rs
         break;
 
     default:
@@ -370,7 +373,7 @@ void Pipeline::WB_stage(){
 
     case BEQ:
     case BZ:
-        PC += stage_in[WB] * PC_OFFSET - 4 * PC_OFFSET;
+     //   PC += stage_in[WB] * PC_OFFSET - 4 * PC_OFFSET; // commented out becaause branching occurs in EX
 
         break;
     case HALT:
@@ -431,8 +434,8 @@ switch (inst.operation)
     case JR:
     case BEQ:
     case BZ:
-    case NOP:;
     case HALT:cont_inst += 1; break;
+    case NOP: break;
     default: debug += 1;
         break;
     }
@@ -458,7 +461,7 @@ void Pipeline_counter::print(){
     cout << "\n";
 
     cout << "*Final register state*" << "\n";
-
+    cout << "Program couter: " << PC << "\n";
     for (int i = 0; i < 32; i++){
         if (accessed_reg[i]){ 
             cout << "R" << i << ": " << Reg[i] << "\n";

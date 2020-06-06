@@ -127,18 +127,22 @@ void Pipeline::run(array<signed int, MEMORY_SIZE> mem_array){
 
     //Init the pipeline.
     IF_stage();
+    //visualization();
     clock();
     IF_stage();
     ID_stage();
+   // visualization();
     clock();
     IF_stage();
     ID_stage();
     EX_stage();
+   // visualization();
     clock();
     IF_stage();
     ID_stage();
     EX_stage();
     MEM_stage();
+  // visualization();
     clock();
 
     while(!halt_flag) {
@@ -148,7 +152,7 @@ void Pipeline::run(array<signed int, MEMORY_SIZE> mem_array){
         EX_stage();
         MEM_stage();
         WB_stage();
-
+     //   visualization();
         pip_count.count(inst_array[WB]);
         
        // visualization();
@@ -265,7 +269,8 @@ void Pipeline::EX_stage(){
     case BZ:
         if (Reg[inst_array[EX].rs] == 0){
             stage_out[EX] = inst_array[EX].immediate;
-            PC += inst_array[EX].immediate * PC_OFFSET;
+            // calculate next PC location, remove 2 OFFSET for EX delay
+            PC += inst_array[EX].immediate * PC_OFFSET - 2*PC_OFFSET;
         } else {
             stage_out[EX] = 0;
         }
@@ -276,7 +281,8 @@ void Pipeline::EX_stage(){
         if (Reg[inst_array[EX].rs] == Reg[inst_array[EX].rt])  // contents of the rs register == contents of rt regsiter
         {
             stage_out[EX] = inst_array[EX].immediate;
-            PC += inst_array[EX].immediate * PC_OFFSET;
+            // calculate next PC location, remove 2 OFFSET for EX delay
+            PC += inst_array[EX].immediate * PC_OFFSET - 2*PC_OFFSET;
         } else {
             stage_out[EX] = 0;
         }
@@ -287,13 +293,17 @@ void Pipeline::EX_stage(){
         stage_out[EX] = Reg[inst_array[EX].rs];
         PC = Reg[inst_array[EX].rs];  // set PC to contents of rs
         break;
+    case HALT:
+        stage_out[EX] = 0;
+        break;
 
     default:
         stage_out[EX] = 0;
-        // if not on of opcodes then HALT is equal to true '1'
-       // halt_flag = 1;
-    }
 
+    cout << "Error: EX stage did not have a proper OpCode. Halting." << "\n";
+        // if not on of opcodes then HALT is equal to true '1'
+        halt_flag = 1;
+    }
     //return halt_flag;    // need to figure this out
 }
 
@@ -316,7 +326,12 @@ void Pipeline::MEM_stage(){
             cout << "Error: outside memory bounds" << "\n";
             halt_flag = 1;
         };
-        // TO DO: fix reading values from memory should be hex value
+
+        
+
+        cout << "Loading: " << memory[stage_in[MEM]] << " from memory location: " << stage_in[MEM] << "\n";
+        // TO DO: fix reading values from memory should be hex value 
+        // Actually may not be necessary since everything in memory is already an int.
         stage_out[MEM] = memory[stage_in[MEM]];
 
         break;
@@ -326,7 +341,9 @@ void Pipeline::MEM_stage(){
             halt_flag = 1;
         };
         // TO DO: fix writing values back to memory, this should be a hex value
+        // Actually may not be necessary since everything in memory is already an int.
         memory[stage_in[MEM]] = Reg[inst_array[MEM].rt];
+        cout << "Storing: " << Reg[inst_array[MEM].rt] << " at MEM loction: " << stage_in[MEM] << "\n";
         break;
     
     default:

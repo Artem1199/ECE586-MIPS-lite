@@ -104,10 +104,13 @@ class Pipeline{
 
     private:
         bool halt_flag = false;
+        bool raw_flag = false; // true if raw hazard detected in ID stage
         array<Instruction,5> inst_array;
         array<signed int, 5> stage_out;  //will this be larger than 32?
         array<signed int,5> stage_in;
         array<signed int,5> fetched_instruction;
+        const Instruction inst_nop;
+
 
 
         Pipeline_counter pip_count;

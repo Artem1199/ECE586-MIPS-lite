@@ -105,6 +105,7 @@ class Pipeline{
     private:
         bool halt_flag = false;
         bool raw_flag = false; // true if raw hazard detected in ID stage
+        bool flush_flag = false; // true if values in IF / ID need to be flushed from misbranch
         array<Instruction,5> inst_array;
         array<signed int, 5> stage_out;  //will this be larger than 32?
         array<signed int,5> stage_in;

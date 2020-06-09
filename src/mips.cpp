@@ -167,7 +167,7 @@ void Pipeline::run(array<signed int, MEMORY_SIZE> mem_array){
         pip_count.count(inst_array[WB]);
         clock();
        pip_count.print();
-
+     // visualization();
       //  cout << "PC: " << PC << "\n";
     }
 
@@ -206,7 +206,16 @@ void Pipeline::clock(){
         stage_in[EX] = stage_out[ID];
         stage_in[MEM] = stage_out[EX];
         stage_in[WB] = stage_out[MEM];
+    }
 
+    if (flush_flag){
+        inst_array[IF] = inst_nop;
+        inst_array[ID] = inst_nop;
+        inst_array[EX] = inst_nop;
+        stage_in[IF] = 0;
+        stage_in[ID] = 0;
+        stage_in[EX] = 0;
+        flush_flag = false;
     }
 
 }
@@ -265,6 +274,8 @@ void Pipeline::ID_stage(){
 }
 
 void Pipeline::EX_stage(){
+int PC_temp = PC; // hold PC value for branch prediction check
+
 //EX. ADD: ex: ADD R3, R4, R5; 
     // Compute the sum [R4] + [R5]
 
@@ -320,6 +331,13 @@ void Pipeline::EX_stage(){
             stage_out[EX] = inst_array[EX].immediate;
             // calculate next PC location, remove 2 OFFSET for EX delay
             PC += inst_array[EX].immediate * PC_OFFSET - 2*PC_OFFSET;
+
+            if ((PC_temp - PC_OFFSET) != PC){
+                flush_flag = true;
+            } else {
+                flush_flag = false;
+            }
+
         } else {
             stage_out[EX] = 0;
         }
@@ -332,6 +350,14 @@ void Pipeline::EX_stage(){
             stage_out[EX] = inst_array[EX].immediate;
             // calculate next PC location, remove 2 OFFSET for EX delay
             PC += inst_array[EX].immediate * PC_OFFSET - 2*PC_OFFSET;
+
+            // check to see if previous instruction was predicted
+            if ((PC_temp - PC_OFFSET) != PC){
+                flush_flag = true;
+            } else {
+                flush_flag = false;
+            }
+
         } else {
             stage_out[EX] = 0;
         }
@@ -340,7 +366,14 @@ void Pipeline::EX_stage(){
         break;
     case JR:
         stage_out[EX] = Reg[inst_array[EX].rs];
+
         PC = Reg[inst_array[EX].rs];  // set PC to contents of rs
+        if ((PC_temp - PC_OFFSET) != PC){
+                flush_flag = true;
+            } else {
+                flush_flag = false;
+            };
+        
         break;
     case HALT:
         stage_out[EX] = 0;

@@ -166,7 +166,8 @@ void Pipeline::run(array<signed int, MEMORY_SIZE> mem_array){
         }
         pip_count.count(inst_array[WB]);
         clock();
-        pip_count.print();
+       pip_count.print();
+
       //  cout << "PC: " << PC << "\n";
     }
 
@@ -458,6 +459,12 @@ void Pipeline::visualization(){
     cout << "|- " << inst_array[IF].stringify() << " -|- " << inst_array[ID].stringify() << " -|- " 
                     << inst_array[EX].stringify() << " -|- " << inst_array[MEM].stringify() << " -|- "
                         << inst_array[WB].stringify() << " -|" << "\n";
+
+    if (raw_flag){
+        cout << "RAW ON" << "\n";
+    } else {
+
+    }
     //cout << "\033[1;31mbold red text\033[0m\n";
     sleep_for(2000ms);
     system("clear");

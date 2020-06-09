@@ -1,0 +1,14 @@
+ADDI R18 0(R0)
+ADDI R19 24(R0)
+ADDI R20 30(R0)
+loop: ANDI R21 R18 2
+BZ R21 label1
+ADDI R20, R20, 4
+J label2
+label1: SUBI R20, R20, 4
+label2: ADDI R18, R18, 3
+BEQ R18 R18 label3
+J loop
+HALT
+
+

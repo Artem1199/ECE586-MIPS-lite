@@ -21,7 +21,7 @@ Instruction::Instruction(){
     rt = 0;
     immediate = 0;
     r_instruction = true;
-    halt_flag = false;
+ //   halt_flag = false;
 }
 
 
@@ -52,7 +52,7 @@ void Instruction::decode (signed int hexin){
         cout << operation << "\n";
         cout << "Instruction: " << hexin << "\n";
        // cout << "PC: " << PC << "\n";
-        halt_flag = 1;
+       // halt_flag = 1;
     }
 };
 
@@ -119,9 +119,9 @@ void Instruction::print(){
 };
 
 Pipeline::Pipeline(){
-    Instruction inst_array[5];
-    string stage_in[5];
-    string stage_out[5];
+    array<Instruction,5> inst_array;
+    array<signed int, 5> stage_out = {0};  //will this be larger than 32?
+    array<signed int,5> stage_in = {0};
     Pipeline_counter pip_count;
 };
 
@@ -131,7 +131,7 @@ void Pipeline::run(array<signed int, MEMORY_SIZE> mem_array){
 
     //Init the pipeline.
     // NO RAW HAZARD ACCOUNTABILITY HERE, FIX ME
-    IF_stage();
+   /* IF_stage();
     clock();
     IF_stage();
     ID_stage();;
@@ -144,14 +144,15 @@ void Pipeline::run(array<signed int, MEMORY_SIZE> mem_array){
     ID_stage();
     EX_stage();
     MEM_stage();
-    clock();
+    clock();*/
 
 
     // loop through pipeline until a halt is reached in the WB stage
+    clock();
     while(!halt_flag) {
 
         if (raw_flag){
-            // If there is a raw_flag, then place a NOP in EX stage and run EX, MEM, WB
+            // If there is a raw_flag, then place a NOP in EX stage and run ID, EX, MEM, WB
             ID_stage();
             EX_stage();
             MEM_stage();
@@ -166,7 +167,6 @@ void Pipeline::run(array<signed int, MEMORY_SIZE> mem_array){
         }
         pip_count.count(inst_array[WB]);
         clock();
-       pip_count.print();
      // visualization();
       //  cout << "PC: " << PC << "\n";
     }
@@ -176,7 +176,6 @@ void Pipeline::run(array<signed int, MEMORY_SIZE> mem_array){
     } else {
         cout << "Error: Reached end of program without reaching HALT \n";
     }
-
     pip_count.print();
 
 }
@@ -214,7 +213,7 @@ void Pipeline::clock(){
         inst_array[EX] = inst_nop;
         stage_in[IF] = 0;
         stage_in[ID] = 0;
-        stage_in[EX] = 0;
+       // stage_in[EX] = 0;
         flush_flag = false;
     }
 
@@ -246,26 +245,26 @@ void Pipeline::ID_stage(){
     // Decode the instruction in IR to determine the operation to
     // be performed (store). Read the contents of registers R6 and R8.
     inst_array[ID].decode(stage_in[ID]);
-
+    
     /* RAW HAZARD Detection */
     // Check to see if the either source register in ID matches the destionation registers in EX or MEM
     // Also check to make sure the destionation registers aren't just R0
     // If true, then print out the hazard, and trigger the raw flag indicating the hazard
     if ((inst_array[ID].rs == inst_array[EX].rd) && (inst_array[EX].rd != 0)) {
-        cout << "RAW Hazard, ID Rs: " << inst_array[ID].rs
-                << " EX Rd: " << inst_array[EX].rd << "\n";
+       // cout << "RAW Hazard, ID Rs: " << inst_array[ID].rs
+       //         << " EX Rd: " << inst_array[EX].rd << "\n";
                 raw_flag = true;
     } else if ((inst_array[ID].rs == inst_array[MEM].rd) && (inst_array[MEM].rd != 0)){
-        cout << "RAW Hazard, ID Rs: " << inst_array[ID].rs 
-                << " MEM Rd: " << inst_array[MEM].rd << "\n";
+       // cout << "RAW Hazard, ID Rs: " << inst_array[ID].rs 
+        //        << " MEM Rd: " << inst_array[MEM].rd << "\n";
                 raw_flag = true;
     } else if ((inst_array[ID].rt == inst_array[EX].rd) && (inst_array[EX].rd != 0)){
-        cout << "RAW Hazard, ID Rt: " << inst_array[ID].rt 
-                << " EX Rd: " << inst_array[EX].rd << "\n";
+       // cout << "RAW Hazard, ID Rt: " << inst_array[ID].rt 
+        //        << " EX Rd: " << inst_array[EX].rd << "\n";
                 raw_flag = true;
     } else if ((inst_array[ID].rt == inst_array[MEM].rd) && (inst_array[MEM].rd != 0)){
-        cout << "RAW Hazard, ID Rt: " << inst_array[ID].rt 
-                << " MEM Rd: " << inst_array[MEM].rd << "\n";
+        // cout << "RAW Hazard, ID Rt: " << inst_array[ID].rt 
+       //         << " MEM Rd: " << inst_array[MEM].rd << "\n";
                 raw_flag = true;
     } else {
         raw_flag = false;
@@ -330,7 +329,8 @@ int PC_temp = PC; // hold PC value for branch prediction check
         if (Reg[inst_array[EX].rs] == 0){
             stage_out[EX] = inst_array[EX].immediate;
             // calculate next PC location, remove 2 OFFSET for EX delay
-            PC += inst_array[EX].immediate * PC_OFFSET - 2*PC_OFFSET;
+            // the “x”th instruction from the current instruction
+            PC += inst_array[EX].immediate * PC_OFFSET - 3*PC_OFFSET;
 
             if ((PC_temp - PC_OFFSET) != PC){
                 flush_flag = true;
@@ -349,7 +349,7 @@ int PC_temp = PC; // hold PC value for branch prediction check
         {
             stage_out[EX] = inst_array[EX].immediate;
             // calculate next PC location, remove 2 OFFSET for EX delay
-            PC += inst_array[EX].immediate * PC_OFFSET - 2*PC_OFFSET;
+            PC += inst_array[EX].immediate * PC_OFFSET - 3*PC_OFFSET;
 
             // check to see if previous instruction was predicted
             if ((PC_temp - PC_OFFSET) != PC){
@@ -379,7 +379,8 @@ int PC_temp = PC; // hold PC value for branch prediction check
         stage_out[EX] = 0;
         break;
     case NOP:
-        cout << "NOP in EX stage \n";
+        // cout << "NOP in EX stage \n";
+        stage_out[EX] = 0;
         break;
 
     default:
@@ -410,7 +411,7 @@ void Pipeline::MEM_stage(){
         // check to see that the array pointer isn't outside memory
         if ((stage_in[MEM] < 0)||(stage_in[MEM] > MEMORY_SIZE - PC_OFFSET)){
             cout << "Error: outside memory bounds" << "\n";
-            halt_flag = 1;
+            halt_flag = true;
         };
        // cout << "Loading: " << memory[stage_in[MEM]] << " from memory location: " << stage_in[MEM] << "\n";
         // TO DO: fix reading values from memory should be hex value 
@@ -421,7 +422,7 @@ void Pipeline::MEM_stage(){
     case STW:
         if ((stage_in[MEM] < 0)||(stage_in[MEM] > MEMORY_SIZE - PC_OFFSET)){
             cout << "Error: outside memory bounds" << "\n";
-            halt_flag = 1;
+            halt_flag = true;
         };
         // TO DO: fix writing values back to memory, this should be a hex value
         // Actually may not be necessary since everything in memory is already an int.
@@ -470,7 +471,7 @@ void Pipeline::WB_stage(){
         break;
 
     case JR:
-        PC = stage_in[WB];
+      //  PC = stage_in[WB];
         break; 
 
     case BEQ:
@@ -523,7 +524,11 @@ void Pipeline_counter::count(Instruction inst){
 
 switch (inst.operation)
     {
-    case ADD:
+    case ADD: if ((inst.rs == 0) && (inst.rt == 0)){
+        arith_inst += 0;
+    } else {
+        arith_inst += 1;
+    } break;
     case SUB:
     case MUL: arith_inst += 1;break;
     case OR:
@@ -551,6 +556,10 @@ switch (inst.operation)
     accessed_reg[inst.rs] = 1;
     accessed_reg[inst.rt] = 1;
     accessed_reg[inst.rd] = 1;
+
+    if (arith_inst > 800){
+        sleep_for(10000ms);
+    }
 
 }
 

@@ -27,7 +27,7 @@ enum e_opCode {
 
     BZ = 14, BEQ = 15, JR = 16, HALT = 17,
 
-    NOP = 999,
+    NOP = 18,
 };
 
 enum e_stages {
@@ -47,13 +47,13 @@ class Instruction{
     void decode(signed int a);
 
     private:
-        e_opCode operation;
+        e_opCode operation = NOP;
         int rs;
         int rt;
         int rd;
         short immediate;
         bool r_instruction;
-        bool halt_flag;
+      //  bool halt_flag;
         // signed int address; - I don't believe having the instruction store it's own address is proper
 
         friend class Pipeline;
@@ -79,6 +79,7 @@ class Pipeline_counter{
 
         array<short, 32> accessed_reg;
         vector<short> accessed_mem;
+        friend class Pipeline;
 
 };
 
@@ -100,8 +101,6 @@ class Pipeline{
         void visualization();
         void count();
 
-        
-
     private:
         bool halt_flag = false;
         bool raw_flag = false; // true if raw hazard detected in ID stage
@@ -111,8 +110,6 @@ class Pipeline{
         array<signed int,5> stage_in;
         array<signed int,5> fetched_instruction;
         const Instruction inst_nop;
-
-
 
         Pipeline_counter pip_count;
 };

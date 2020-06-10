@@ -1,0 +1,17 @@
+4010018
+40200000
+0
+0
+0
+4020001
+44000000
+0
+0
+0
+0
+
+//load #24 into register 24
+//jump to address #24
+//halt
+//check for misses by adding or deleting 0
+//passed

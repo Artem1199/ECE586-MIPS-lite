@@ -16,7 +16,7 @@ int main()
     signed int N_inst;
     short loop_input = 0;
     string line;
-    ifstream myfile ("image.txt");
+    ifstream myfile ("BZ-test.txt");
     if (myfile.is_open())
     {
         while (! myfile.eof()){
@@ -41,7 +41,8 @@ int main()
 
                 // };  
         }
-
+        
+        // print every instruction in memory
        for (int i = 1023; i >= 0; i--) 
             {
                 a.decode(mem_array[i*4]);

@@ -169,6 +169,8 @@ void Pipeline::run(array<signed int, MEMORY_SIZE> mem_array){
         clock();
      // visualization();
       //  cout << "PC: " << PC << "\n";
+     //sleep_for(20ms);
+     // pip_count.print();
     }
 
     if (halt_flag){
@@ -317,6 +319,8 @@ int PC_temp = PC; // hold PC value for branch prediction check
         break;
     case ANDI:
         stage_out[EX] = Reg[inst_array[EX].rs] & inst_array[EX].immediate;
+
+      //  cout << "ANDI output: " << stage_out[EX] << "\n";
         break;
     case XOR:
         stage_out[EX] = Reg[inst_array[EX].rs] ^ Reg[inst_array[EX].rt];
@@ -326,18 +330,20 @@ int PC_temp = PC; // hold PC value for branch prediction check
         break;
 
     case BZ:
+      //  cout << "BZ input value" << Reg[inst_array[EX].rs] << "\n";
+
         if (Reg[inst_array[EX].rs] == 0){
+          //  cout << "input is equal to 0 \n";
             stage_out[EX] = inst_array[EX].immediate;
             // calculate next PC location, remove 2 OFFSET for EX delay
             // the “x”th instruction from the current instruction
             PC += inst_array[EX].immediate * PC_OFFSET - 3*PC_OFFSET;
 
-            if ((PC_temp - PC_OFFSET) != PC){
+            if ((PC_temp - PC_OFFSET*2) != PC){
                 flush_flag = true;
             } else {
                 flush_flag = false;
-            }
-
+            };
         } else {
             stage_out[EX] = 0;
         }
@@ -347,16 +353,16 @@ int PC_temp = PC; // hold PC value for branch prediction check
     case BEQ:
         if (Reg[inst_array[EX].rs] == Reg[inst_array[EX].rt])  // contents of the rs register == contents of rt regsiter
         {
+            
             stage_out[EX] = inst_array[EX].immediate;
             // calculate next PC location, remove 2 OFFSET for EX delay
             PC += inst_array[EX].immediate * PC_OFFSET - 3*PC_OFFSET;
-
             // check to see if previous instruction was predicted
             if ((PC_temp - PC_OFFSET) != PC){
                 flush_flag = true;
             } else {
                 flush_flag = false;
-            }
+            };
 
         } else {
             stage_out[EX] = 0;
@@ -373,7 +379,6 @@ int PC_temp = PC; // hold PC value for branch prediction check
             } else {
                 flush_flag = false;
             };
-        
         break;
     case HALT:
         stage_out[EX] = 0;
@@ -540,7 +545,7 @@ switch (inst.operation)
     case ORI:
     case ANDI:
     case XORI:logic_inst += 1;break;
-    case LDW: 
+    case LDW: mem_inst += 1; break;
     case STW:        
         accessed_mem.push_back(inst.rs + inst.immediate);
         mem_inst += 1; break;
@@ -579,7 +584,7 @@ void Pipeline_counter::print(){
 
     cout << "*Final register state*" << "\n";
     cout << "Program couter: " << PC << "\n";
-    for (int i = 0; i < 32; i++){
+    for (int i = 1; i < 32; i++){
         if (accessed_reg[i]){ 
             cout << "R" << i << ": " << Reg[i] << "\n";
         }

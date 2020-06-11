@@ -1,0 +1,33 @@
+// Initialization
+0 ADDI Rt1 #1000(Rs0)  //PUT 1000 into R1
+4 ADDI Rt2 #1200(Rs0) // PUT 1200 into R2
+8 ADD Rd7 Rs0 Rt0    //  PUT 0 into R7
+12 ADD Rd8 Rs0 Rt0   // PUT 0 into R8
+16 ADD Rd9 Rs0 Rt0   // PUT 0 into R9
+20 ADD Rd10 Rs0 Rt0  // PUT 0 into R10
+24 ADDI Rt11 #50(Rs0) //PUT 50 into R11 
+28 ADDI Rt12 #32(Rs0) // PUT 32 into R12
+
+//LOOP
+
+32 BEQ Rt11 #13(Rs10) // IF R11 == R10, then jump to instruction 84, 32**
+36 LDW Rt3 #0(Rs1)    // Load data from location 1000 to R3
+40 LDW Rt4 #0(Rs2)    // Load data from location 1200 to R4
+44 SUB Rd5 Rs3 Rt4    // R5 = R3 - R4 (R3 = ?, R4 = ?)
+48 ANDI Rt6 #1(Rs5)   // R5 and 1
+52 BZ Rt0 #2(Rs6)	// IF R6 = 0, then branch to instruction 60
+56 ADDI Rt7 #1(Rs7)    // R7 = R7+1  				**error here, add happens twice?**
+60 ADD Rd8 Rs8 Rt3     // R8 = R8+R3 (R3 =?, R8 = 0) inst 60 **  **error here, 
+64 ADD Rd9 Rs9 Rt4     // R8 = R9+R4 (R9 = 0, R4 = ?)
+68 ADDI Rt1 #4(Rs1)    // R1 = R1 + 4 (R1 = 1000)
+72 ADDI Rt2 #4(Rs2)    // R2 = R2 + 4 (R2 = 1200)
+76 ADDI Rt10 #1(Rs10) // R10 = R10 + 1
+
+//Store
+
+80 JR Rt0 #0(Rs12)    // Jump to R12, R12 = 32, 
+84 STW Rt7 #1400(Rs0) // Store values in memory location
+88 STW Rt8 #1404(Rs0)
+92 STW Rt9 #1408(Rs0)
+96 HALT Rt0 #0(Rs0)   // stop program
+100 ADD Rd0 Rs0 Rt0

@@ -16,7 +16,7 @@ int main()
     signed int N_inst;
     short loop_input = 0;
     string line;
-    ifstream myfile ("BZ-test.txt");
+    ifstream myfile ("image.txt");
     if (myfile.is_open())
     {
         while (! myfile.eof()){

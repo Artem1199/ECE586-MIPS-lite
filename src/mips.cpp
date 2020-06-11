@@ -328,10 +328,8 @@ int PC_temp = PC; // hold PC value for branch prediction check
     case XORI:
         stage_out[EX] = Reg[inst_array[EX].rs] ^ inst_array[EX].immediate;
         break;
-
     case BZ:
       //  cout << "BZ input value" << Reg[inst_array[EX].rs] << "\n";
-
         if (Reg[inst_array[EX].rs] == 0){
           //  cout << "input is equal to 0 \n";
             stage_out[EX] = inst_array[EX].immediate;
@@ -348,7 +346,6 @@ int PC_temp = PC; // hold PC value for branch prediction check
             stage_out[EX] = 0;
         }
         // Add check for PC
-
         break;
     case BEQ:
         if (Reg[inst_array[EX].rs] == Reg[inst_array[EX].rt])  // contents of the rs register == contents of rt regsiter
@@ -368,7 +365,6 @@ int PC_temp = PC; // hold PC value for branch prediction check
             stage_out[EX] = 0;
         }
         // Add check for PC 
-
         break;
     case JR:
         stage_out[EX] = Reg[inst_array[EX].rs];
@@ -529,7 +525,7 @@ void Pipeline_counter::count(Instruction inst){
 
 switch (inst.operation)
     {
-    case ADD: if ((inst.rs == 0) && (inst.rt == 0)){
+    case ADD: if ((inst.rs == 0) && (inst.rt == 0) && (inst.rd == 0) ){
         arith_inst += 0;
     } else {
         arith_inst += 1;
@@ -583,7 +579,7 @@ void Pipeline_counter::print(){
     cout << "\n";
 
     cout << "*Final register state*" << "\n";
-    cout << "Program couter: " << PC << "\n";
+    cout << "Program couter: " << PC - 4 * PC_OFFSET << "\n";
     for (int i = 1; i < 32; i++){
         if (accessed_reg[i]){ 
             cout << "R" << i << ": " << Reg[i] << "\n";
@@ -594,6 +590,7 @@ void Pipeline_counter::print(){
     cout << "*Final memory state*" << "\n";
 
     while(!accessed_mem.empty()){
+        
         cout << "Address: " << accessed_mem.back() << ", Contents: "<< memory[accessed_mem.back()] << "\n";
         accessed_mem.pop_back();
 

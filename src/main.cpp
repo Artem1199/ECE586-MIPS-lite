@@ -13,7 +13,7 @@ int main()
     // clear terminal
     system("clear");
     Instruction a;
-    signed int N_inst;
+    signed long N_inst;
     short loop_input = 0;
     string line;
     ifstream myfile ("image.txt");

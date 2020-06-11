@@ -76,6 +76,10 @@ class Pipeline_counter{
         int mem_inst;
         int cont_inst;
         int debug;
+        int clock_count = 0;
+        int raw_count = 0;
+        int flush_count = 0;
+        int nop_inst = 0;
 
         array<short, 32> accessed_reg;
         vector<short> accessed_mem;
@@ -101,6 +105,8 @@ class Pipeline{
         void visualization();
         void count();
 
+        void forward_false();
+
     private:
         bool halt_flag = false;
         bool raw_flag = false; // true if raw hazard detected in ID stage
@@ -110,7 +116,7 @@ class Pipeline{
         array<signed int,5> stage_in;
         array<signed int,5> fetched_instruction;
         const Instruction inst_nop;
-        int clock_count = 0;
+        
         // keep track on forwarding
         array<bool, 5> forward_rs = {false};
         array<bool, 5> forward_rt = {false};

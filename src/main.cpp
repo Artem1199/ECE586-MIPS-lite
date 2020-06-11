@@ -43,7 +43,7 @@ int main()
         }
         
         // print every instruction in memory
-       for (int i = 1023; i >= 0; i--) 
+       for (int i = 50; i >= 0; i--) 
             {
                 a.decode(mem_array[i*4]);
                 cout << i*4 << " " << a.stringify() << "\n";

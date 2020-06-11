@@ -130,24 +130,6 @@ void Pipeline::run(array<signed int, MEMORY_SIZE> mem_array){
     
     memory = mem_array;
 
-    //Init the pipeline.
-    // NO RAW HAZARD ACCOUNTABILITY HERE, FIX ME
-   /* IF_stage();
-    clock();
-    IF_stage();
-    ID_stage();;
-    clock();
-    IF_stage();
-    ID_stage();
-    EX_stage();
-    clock();
-    IF_stage();
-    ID_stage();
-    EX_stage();
-    MEM_stage();
-    clock();*/
-
-
     // loop through pipeline until a halt is reached in the WB stage
     clock();
     while(!halt_flag) {
@@ -180,6 +162,7 @@ void Pipeline::run(array<signed int, MEMORY_SIZE> mem_array){
         cout << "Error: Reached end of program without reaching HALT \n";
     }
     pip_count.print();
+    cout << "Clock count: " << clock_count << "\n";
 
 }
 
@@ -220,6 +203,11 @@ void Pipeline::clock(){
         flush_flag = false;
     }
 
+    forward_rt_next = forward_rt;
+    forward_rs_next = forward_rs;
+
+    clock_count += 1;
+
 }
 
 void Pipeline::IF_stage(){
@@ -253,52 +241,79 @@ void Pipeline::ID_stage(){
     // Check to see if the either source register in ID matches the destionation registers in EX or MEM
     // Also check to make sure the destionation registers aren't just R0
     // If true, then print out the hazard, and trigger the raw flag indicating the hazard
+
+    raw_flag = false;
+
     if ((inst_array[ID].rs == inst_array[EX].rd) && (inst_array[EX].rd != 0)) {
-       // cout << "RAW Hazard, ID Rs: " << inst_array[ID].rs
-       //         << " EX Rd: " << inst_array[EX].rd << "\n"
-       raw_flag = true;
-        
-        //enable forwarding
-        //if (inst_array[EX].operation == LDW){
-      //      raw_flag = true; 
-      //  } else {
-      //      raw_flag = false;
-       // }
+        cout << "RAW Hazard, ID Rs: " << inst_array[ID].rs
+                << " EX Rd: " << inst_array[EX].rd << "\n";
+       // raw_flag = true;
+       // enable forwarding - RS in ID conflicts with RD in EX stage
+       // If not a LDW command then enable forwarding for RS
+       if (inst_array[EX].operation == LDW){  //if it is a LDW command, then wait a cycle
+           raw_flag = true; 
+        } else {
+           raw_flag = false;
+           forward_rs[EX] = true;
+        }
+    }
 
-    } else if ((inst_array[ID].rs == inst_array[MEM].rd) && (inst_array[MEM].rd != 0)){
-       // cout << "RAW Hazard, ID Rs: " << inst_array[ID].rs 
-        //        << " MEM Rd: " << inst_array[MEM].rd << "\n";
-        //        raw_flag = false;
-        raw_flag = true;
+    if ((inst_array[ID].rs == inst_array[MEM].rd) && (inst_array[MEM].rd != 0)){
+        cout << "RAW Hazard, ID Rs: " << inst_array[ID].rs 
+                << " MEM Rd: " << inst_array[MEM].rd << "\n";
+        //enable forwarding - RS in ID stage conflicts with RD in MEM stage
+        //enable fowarding for RS from the MEM stage
+       raw_flag = false;
+       forward_rs[MEM] = true;
+       // raw_flag = true;
 
-    } else if ((inst_array[ID].rt == inst_array[EX].rd) && (inst_array[EX].rd != 0)){
-       // cout << "RAW Hazard, ID Rt: " << inst_array[ID].rt 
-        //        << " EX Rd: " << inst_array[EX].rd << "\n";
-        
-        //enable forwarding
-      //  if (inst_array[EX].operation == LDW){
-      //      raw_flag = true; 
-      //  } else {
-      //      raw_flag = false;
-      //  }
-      raw_flag = true;
-
-
-    } else if ((inst_array[ID].rt == inst_array[MEM].rd) && (inst_array[MEM].rd != 0)){
-        // cout << "RAW Hazard, ID Rt: " << inst_array[ID].rt 
-       //         << " MEM Rd: " << inst_array[MEM].rd << "\n";
-       
+    }
+     if ((inst_array[ID].rt == inst_array[EX].rd) && (inst_array[EX].rd != 0)){
+        cout << "RAW Hazard, ID Rt: " << inst_array[ID].rt 
+               << " EX Rd: " << inst_array[EX].rd << "\n";
+        //enable forwarding - RT in ID stage conflicts with RD in EX stage
+        // enable fowarding from EX stage to EX stage for RT
+        if (inst_array[EX].operation == LDW){
+            raw_flag = true; 
+        } else {
+           raw_flag = false;
+           forward_rt[EX] = true;
+        };
+       // raw_flag = true;
+    }
+     if ((inst_array[ID].rt == inst_array[MEM].rd) && (inst_array[MEM].rd != 0)){
+     cout << "RAW Hazard, ID Rt: " << inst_array[ID].rt 
+             << " MEM Rd: " << inst_array[MEM].rd << "\n";
+      // raw_flag = true;
        //enable forwarding
-       //         raw_flag = false ;
-       raw_flag = true;
-    } else {
-        raw_flag = false;
+       raw_flag = false;
+       forward_rt[MEM] = true;
+      // raw_flag = true;
+       
     }
 
 }
 
 void Pipeline::EX_stage(){
 int PC_temp = PC; // hold PC value for branch prediction check
+
+ if (forward_rs_next[EX]) {
+     Reg[inst_array[EX].rs] = stage_in[MEM];
+     forward_rs[EX] = false;
+ }
+ if (forward_rt_next[EX]) {
+     Reg[inst_array[EX].rt] = stage_in[MEM];
+     forward_rt[EX] = false;
+ }
+ if (forward_rs_next[MEM]){
+     Reg[inst_array[EX].rs] = stage_out[MEM];
+     forward_rs[MEM] = false;
+ }
+ if (forward_rt_next[MEM]){
+     Reg[inst_array[EX].rt] = stage_out[MEM];
+     forward_rt[MEM] = false;
+     cout << "Forward RD from MEM to RT, RD: " << stage_out[MEM] << "\n";
+ }
 
 //EX. ADD: ex: ADD R3, R4, R5; 
     // Compute the sum [R4] + [R5]
@@ -317,6 +332,7 @@ int PC_temp = PC; // hold PC value for branch prediction check
     case LDW:
     case STW:
         stage_out[EX] =  Reg[inst_array[EX].rs] + inst_array[EX].immediate;
+        cout << "ADDI, stage_out: " << stage_out[EX] << "\n";
         break;
     case SUB:
         stage_out[EX] =  Reg[inst_array[EX].rs] - Reg[inst_array[EX].rt];
@@ -342,6 +358,7 @@ int PC_temp = PC; // hold PC value for branch prediction check
         break;
     case ANDI:
         stage_out[EX] = Reg[inst_array[EX].rs] & inst_array[EX].immediate;
+        
 
       //  cout << "ANDI output: " << stage_out[EX] << "\n";
         break;
@@ -457,6 +474,7 @@ void Pipeline::MEM_stage(){
     default:
     // Pass data calculated in EX stage if not a load / store instruction
         stage_out[MEM] = stage_in[MEM];
+        cout << "MEM, stage_in: " << stage_in[MEM] << "\n";
         break;
     }
 

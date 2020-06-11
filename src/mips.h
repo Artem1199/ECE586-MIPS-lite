@@ -110,6 +110,12 @@ class Pipeline{
         array<signed int,5> stage_in;
         array<signed int,5> fetched_instruction;
         const Instruction inst_nop;
+        int clock_count = 0;
+        // keep track on forwarding
+        array<bool, 5> forward_rs = {false};
+        array<bool, 5> forward_rt = {false};
+        array<bool, 5> forward_rs_next = {false};
+        array<bool, 5> forward_rt_next = {false};
 
         Pipeline_counter pip_count;
 };

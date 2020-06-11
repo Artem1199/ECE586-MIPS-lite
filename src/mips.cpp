@@ -43,6 +43,7 @@ void Instruction::decode (signed int hexin){
         r_instruction = true;
     } else if ((operation == ADDI) or (operation == SUBI) or (operation == MULI) or (operation == ORI) or (operation == ANDI) or (operation == XORI) or (operation == LDW) or (operation == STW) or (operation == BZ) or  (operation == BEQ) or (operation == JR) or (operation == HALT)) {
         r_instruction = false;
+
         if ((operation != STW) && (operation != BEQ)){
         rd = rt; // Set rd to rt to make RAW detection logic simpler
         }
@@ -254,20 +255,42 @@ void Pipeline::ID_stage(){
     // If true, then print out the hazard, and trigger the raw flag indicating the hazard
     if ((inst_array[ID].rs == inst_array[EX].rd) && (inst_array[EX].rd != 0)) {
        // cout << "RAW Hazard, ID Rs: " << inst_array[ID].rs
-       //         << " EX Rd: " << inst_array[EX].rd << "\n";
-                raw_flag = true;
+       //         << " EX Rd: " << inst_array[EX].rd << "\n"
+       raw_flag = true;
+        
+        //enable forwarding
+        //if (inst_array[EX].operation == LDW){
+      //      raw_flag = true; 
+      //  } else {
+      //      raw_flag = false;
+       // }
+
     } else if ((inst_array[ID].rs == inst_array[MEM].rd) && (inst_array[MEM].rd != 0)){
        // cout << "RAW Hazard, ID Rs: " << inst_array[ID].rs 
         //        << " MEM Rd: " << inst_array[MEM].rd << "\n";
-                raw_flag = true;
+        //        raw_flag = false;
+        raw_flag = true;
+
     } else if ((inst_array[ID].rt == inst_array[EX].rd) && (inst_array[EX].rd != 0)){
        // cout << "RAW Hazard, ID Rt: " << inst_array[ID].rt 
         //        << " EX Rd: " << inst_array[EX].rd << "\n";
-                raw_flag = true;
+        
+        //enable forwarding
+      //  if (inst_array[EX].operation == LDW){
+      //      raw_flag = true; 
+      //  } else {
+      //      raw_flag = false;
+      //  }
+      raw_flag = true;
+
+
     } else if ((inst_array[ID].rt == inst_array[MEM].rd) && (inst_array[MEM].rd != 0)){
         // cout << "RAW Hazard, ID Rt: " << inst_array[ID].rt 
        //         << " MEM Rd: " << inst_array[MEM].rd << "\n";
-                raw_flag = true;
+       
+       //enable forwarding
+       //         raw_flag = false ;
+       raw_flag = true;
     } else {
         raw_flag = false;
     }

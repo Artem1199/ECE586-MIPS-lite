@@ -12,8 +12,7 @@ array<signed int, MEMORY_SIZE> memory = {0};
 #define MEM 3
 #define WB 4
 
-
-// #define EN_FW  // Enable / Disable forwarding
+ #define EN_FW  // Enable / Disable forwarding
 
 Instruction::Instruction(){
     operation = NOP;

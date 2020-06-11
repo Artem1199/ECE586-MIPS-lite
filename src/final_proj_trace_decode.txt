@@ -1,0 +1,29 @@
+0 ADDI Rt11 #804(Rs0)  //Place 804 in R11
+4 ADDI Rt12 #1596(Rs0) //Place 1596 in R12
+8 ADDI Rt13 #2400(Rs0) //Place 2400 in R13
+12 ADDI Rt18 #3200(Rs0) //Place 3200 in R18
+16 ADDI Rt19 #-1(Rs0) // Place -1 in R19
+20 SUBI Rt20 #2(Rs0) //Place -2 in R20
+24 ADDI Rt22 #78(Rs20) //Place  76 in R22
+28 ADDI Rt23 #3(Rs0) //Place 3 in R23
+32 ADD Rd24 Rs19 Rt0  //R24 = R19 (-1)
+
+36 LDW Rt14 #-4(Rs11) // LDW R14 = (800) (small positive)
+40 LDW Rt15 #4(Rs12) // LDW R15 = (1600) (neg number)
+44 LDW Rt17 #0(Rs13) //LDW R17 = (2400) (pos number)
+48 SUB Rd16 Rs14 Rt15 //R16 = R14 - R15
+52 OR Rd21 Rs16 Rt20 //R21 = R16 | R20
+56 BEQ Rt19 #3(Rs21) //If R19 == R21 go to instruction #68
+60 MULI Rt17 #2(Rs17) // R17 = 2*R17 (small positive times 2)
+64 JR Rt0 #0(Rs22)  // Jump to R22 (76)
+68 MUL Rd17 Rs17 Rt23 // R17 = R17 * R23 (small positive times 3)
+72 ADD Rd17 Rs17 Rt24 // R17 = R17 + R24 (small positive times 3 + -1)
+76 ADDI Rt11 #4(Rs11) // R11 = R11 + 4 (804 + 4) (small positive numbers)
+80 ADDI Rt12 #4(Rs12) // R12 = R12 + 4 (1596 + 4) (small negative numbers)
+84 STW Rt17 #0(Rs13) // STW R17 in R13 (2400)
+88 ADDI Rt13 #4(Rs13) //R13 = R13 + 4 (2400 + 4) (small positive numbers)
+92 ADDI Rt18 #4(Rs18) //R18 = R18 + 4 (3200 + 4) (00s until 81)
+96 LDW Rt25 #0(Rs18) //LDW R25 = (3200) (R18 constantly increases by 4) until 3524 where it stops (81 iterations)
+100 BZ Rt0 #-16(Rs25) // if R25 = 0, then Jump to 36
+104 XORI Rt25 #63(Rs25) // R25 = 63 XOR R25
+108 HALT Rt0 #0(Rs0) // HALT

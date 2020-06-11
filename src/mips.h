@@ -81,7 +81,7 @@ class Pipeline_counter{
         int flush_count = 0;
         int nop_inst = 0;
 
-        array<short, 32> accessed_reg;
+        array<short, 32> accessed_reg = {0};
         vector<short> accessed_mem;
         friend class Pipeline;
 

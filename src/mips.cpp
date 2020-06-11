@@ -40,9 +40,10 @@ void Instruction::decode (signed int hexin){
     // four conditon, i type instruction, i type instruction, or HALT
     if ((operation == ADD) or (operation == SUB) or (operation == MUL) or (operation == OR) or (operation == AND) or (operation == XOR)) {
         r_instruction = true;
-    } else if ((operation == ADDI) or (operation == SUBI) or (operation == MULI) or (operation == ORI) or (operation == ANDI) or 
-                (operation == XORI) or (operation == LDW) or (operation == STW) or (operation == BZ) or  (operation == BEQ) or (operation == JR) or (operation == HALT)) {
+    
+    } else if ((operation == ADDI) or (operation == SUBI) or (operation == MULI) or (operation == ORI) or (operation == ANDI) or (operation == XORI) or (operation == LDW) or (operation == STW) or (operation == BZ) or  (operation == BEQ) or (operation == JR) or (operation == HALT)) {
         r_instruction = false;
+        rd = 0;
 
         if ((operation != STW) && (operation != BEQ) && (operation != BZ) && (operation != JR) && (operation != HALT)){
         rd = rt; // Set rd to rt to make RAW detection logic simpler
@@ -157,8 +158,8 @@ void Pipeline::run(array<signed int, MEMORY_SIZE> mem_array){
         clock();
      // visualization();
       //  cout << "PC: " << PC << "\n";
-  //  sleep_for(300ms);
-  //   pip_count.print();
+    // sleep_for(300ms);
+    // pip_count.print();
     }
 
     if (halt_flag){
@@ -422,7 +423,7 @@ int PC_temp = PC; // hold PC value for branch prediction check
         stage_out[EX] = Reg[inst_array[EX].rs] ^ inst_array[EX].immediate;
         break;
     case BZ:
-        cout << "BZ input value: " << Reg[inst_array[EX].rs] << "\n";
+        // cout << "BZ input value: " << Reg[inst_array[EX].rs] << "\n";
         if (Reg[inst_array[EX].rs] == 0){
           //  cout << "input is equal to 0 \n";
             stage_out[EX] = inst_array[EX].immediate;
@@ -479,7 +480,6 @@ int PC_temp = PC; // hold PC value for branch prediction check
 
     default:
         stage_out[EX] = 0;
-    
     cout << "Error: EX stage did not have a proper OpCode. Halting." << "\n";
     cout << "Instruction: " << inst_array[EX].stringify() << "\n";
         // if not on of opcodes then HALT is equal to true '1'
@@ -654,6 +654,11 @@ switch (inst.operation)
     accessed_reg[inst.rs] = 1;
     accessed_reg[inst.rt] = 1;
     accessed_reg[inst.rd] = 1;
+
+    if (inst.rd == 31){
+            cout << "Reg 31, opcode: " << inst.operation <<"\n";
+    }
+
 
     if (arith_inst > 800){
         sleep_for(10000ms);

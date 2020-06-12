@@ -12,7 +12,7 @@ array<signed int, MEMORY_SIZE> memory = {0};
 #define MEM 3
 #define WB 4
 
-//  #define EN_FW  // Enable forwarding
+//#define EN_FW  // Enable forwarding
 
 Instruction::Instruction(){
     operation = NOP;
@@ -158,9 +158,9 @@ void Pipeline::run(array<signed int, MEMORY_SIZE> mem_array){
      // visualization();
       //  cout << "PC: " << PC << "\n";
     
-    sleep_for(500ms);
-    system("clear");
-    pip_count.print();
+   // sleep_for(500ms);
+   // system("clear");
+    //pip_count.print();
     }
 
     if (halt_flag){
@@ -188,6 +188,7 @@ void Pipeline::clock(){
         // set any fowarding to false;
         forward_false();
         pip_count.raw_count += 1;
+
     } else {
         inst_array[WB] = inst_array[MEM];
         inst_array[MEM] = inst_array[EX];
@@ -206,11 +207,13 @@ void Pipeline::clock(){
         inst_array[ID] = inst_nop;
         inst_array[EX] = inst_nop;
         stage_in[IF] = 0;
+        stage_out[IF] = 0;
         stage_in[ID] = 0;
+        stage_out[ID] = 0;
        // stage_in[EX] = 0;
       // cout << "flushing in clock (1) \n";
         flush_flag = false;
-
+        
         forward_false();
         pip_count.flush_count += 1;
     }
@@ -266,6 +269,8 @@ void Pipeline::ID_stage(){
     // If true, then print out the hazard, and trigger the raw flag indicating the hazard
     forward_false();
     raw_flag = false;
+
+    cout << inst_array[ID].operation << "\n";
     if ((inst_array[ID].rs == inst_array[EX].rd) && (inst_array[EX].rd != 0)) {
        // cout << "RAW Hazard, ID Rs: " << inst_array[ID].rs
        //         << " EX Rd: " << inst_array[EX].rd << "\n";
@@ -385,6 +390,7 @@ int PC_temp = PC; // hold PC value for branch prediction check
     {
     case ADD:
         stage_out[EX] =  Reg[inst_array[EX].rs] + Reg[inst_array[EX].rt];
+        cout << "ADD Case RS: " << Reg[inst_array[EX].rs] << " RT: " << Reg[inst_array[EX].rt] << " Result: " << stage_out[EX] << "\n";
         break;
     case ADDI:
     case LDW:
@@ -400,16 +406,16 @@ int PC_temp = PC; // hold PC value for branch prediction check
         break;
     case MUL:
         stage_out[EX] =  Reg[inst_array[EX].rs] * Reg[inst_array[EX].rt];
-        cout << "Mult Case RS: " << Reg[inst_array[EX].rs] << " RT: " << Reg[inst_array[EX].rt] << " Result: " << stage_out[EX] << "\n";
+        //cout << "Mult Case RS: " << Reg[inst_array[EX].rs] << " RT: " << Reg[inst_array[EX].rt] << " Result: " << stage_out[EX] << "\n";
         break;
     case MULI:
         stage_out[EX] =  Reg[inst_array[EX].rs] * inst_array[EX].immediate;
-        cout << "Multi Case RS: " << Reg[inst_array[EX].rs] << " immediate: " << Reg[inst_array[EX].immediate] << " Result: " << stage_out[EX] << "\n";
+        //cout << "Multi Case RS: " << Reg[inst_array[EX].rs] << " immediate: " << Reg[inst_array[EX].immediate] << " Result: " << stage_out[EX] << "\n";
         break;
     
     case OR:
         stage_out[EX] = Reg[inst_array[EX].rs] | Reg[inst_array[EX].rt];
-       cout << "OR Case RS: " << Reg[inst_array[EX].rs] << " OR RT: " << Reg[inst_array[EX].rt] << " Result: " << stage_out[EX] << "\n";
+        //cout << "OR Case RS: " << Reg[inst_array[EX].rs] << " OR RT: " << Reg[inst_array[EX].rt] << " Result: " << stage_out[EX] << "\n";
         break;
     case ORI:
         stage_out[EX] = Reg[inst_array[EX].rs] | inst_array[EX].immediate;
@@ -458,11 +464,10 @@ int PC_temp = PC; // hold PC value for branch prediction check
             // check to see if previous instruction was predicted
             if ((PC_temp - PC_OFFSET*2) != PC){
                 flush_flag = true;
-                cout << "FLUSHING AT BEQ ***********************************************\n";
+                
                // sleep_for(1000ms);
             } else {
                 flush_flag = false;
-                cout << "NO FLUSHING AT BEQ ***********************************************\n";
                // sleep_for(1000ms);
             };
 
@@ -477,6 +482,7 @@ int PC_temp = PC; // hold PC value for branch prediction check
         PC = Reg[inst_array[EX].rs];  // set PC to contents of rs
         if ((PC_temp - PC_OFFSET*2) != PC){
                 flush_flag = true;
+                cout << "FLUSHING AT JR ***********************************************\n";
             } else {
                 flush_flag = false;
             };
@@ -679,6 +685,10 @@ void Pipeline_counter::print(){
 
     cout << "\n";
 
+    #ifdef EN_FW
+    cout << "*Forwaring ENABLED* \n \n";
+    #endif
+
     cout << "*Instruction counts* " << "\n";
 
     cout << "Total number of instructions: " << cont_inst + mem_inst + logic_inst + arith_inst << "\n";
@@ -700,8 +710,10 @@ void Pipeline_counter::print(){
     cout << "\n";
     cout << "*Final memory state*" << "\n";
 
+    int j = 1;
+
     while(!accessed_mem.empty()){
-        
+        cout << j++ << " ";
         cout << "Address: " << accessed_mem.back() << ", Contents: "<< memory[accessed_mem.back()] << "\n";
         accessed_mem.pop_back();
 

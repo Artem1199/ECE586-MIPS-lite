@@ -2,7 +2,7 @@
 
 using namespace std;
 
-unsigned int PC = 0;
+int PC = 0;
 signed int Reg[32] = {0};
 array<signed int, MEMORY_SIZE> memory = {0};
 
@@ -12,7 +12,7 @@ array<signed int, MEMORY_SIZE> memory = {0};
 #define MEM 3
 #define WB 4
 
- #define EN_FW  // Enable / Disable forwarding
+//  #define EN_FW  // Enable forwarding
 
 Instruction::Instruction(){
     operation = NOP;
@@ -49,7 +49,7 @@ void Instruction::decode (signed int hexin){
         rd = rt; // Set rd to rt to make RAW detection logic simpler
         if (operation == BZ){
             cout << "Error: Illegal operation.";
-        }
+                }
         }
     } else {
         cout << "Error: not an r or i instruction, ";
@@ -149,7 +149,6 @@ void Pipeline::run(array<signed int, MEMORY_SIZE> mem_array){
             IF_stage();
             ID_stage();
             EX_stage();
-            
             MEM_stage();
             WB_stage();
         }
@@ -158,8 +157,10 @@ void Pipeline::run(array<signed int, MEMORY_SIZE> mem_array){
         clock();
      // visualization();
       //  cout << "PC: " << PC << "\n";
-    // sleep_for(300ms);
-    // pip_count.print();
+    
+    sleep_for(500ms);
+    system("clear");
+    pip_count.print();
     }
 
     if (halt_flag){
@@ -187,8 +188,6 @@ void Pipeline::clock(){
         // set any fowarding to false;
         forward_false();
         pip_count.raw_count += 1;
-
-
     } else {
         inst_array[WB] = inst_array[MEM];
         inst_array[MEM] = inst_array[EX];
@@ -201,22 +200,24 @@ void Pipeline::clock(){
         stage_in[MEM] = stage_out[EX];
         stage_in[WB] = stage_out[MEM];
     }
-
+   // cout << "flushing in clock (0) \n";
     if (flush_flag){
         inst_array[IF] = inst_nop;
         inst_array[ID] = inst_nop;
         inst_array[EX] = inst_nop;
         stage_in[IF] = 0;
         stage_in[ID] = 0;
-        stage_in[EX] = 0;
+       // stage_in[EX] = 0;
+      // cout << "flushing in clock (1) \n";
         flush_flag = false;
 
         forward_false();
         pip_count.flush_count += 1;
     }
 
-    forward_rt_next = forward_rt;
-    forward_rs_next = forward_rs;
+
+    forward_rt = forward_rt_next;
+    forward_rs = forward_rs_next;
 
     pip_count.clock_count += 1;
 
@@ -225,8 +226,8 @@ void Pipeline::clock(){
 void Pipeline::forward_false(){
 
     for (int i = 0; i < 4; i++){
-        forward_rt[i] = false;
-        forward_rs[i] = false;
+        forward_rt_next[i] = false;
+        forward_rs_next[i] = false;
     }
 }
 
@@ -263,7 +264,7 @@ void Pipeline::ID_stage(){
     // Check to see if the either source register in ID matches the destionation registers in EX or MEM
     // Also check to make sure the destionation registers aren't just R0
     // If true, then print out the hazard, and trigger the raw flag indicating the hazard
-
+    forward_false();
     raw_flag = false;
     if ((inst_array[ID].rs == inst_array[EX].rd) && (inst_array[EX].rd != 0)) {
        // cout << "RAW Hazard, ID Rs: " << inst_array[ID].rs
@@ -272,12 +273,14 @@ void Pipeline::ID_stage(){
        // enable forwarding - RS in ID conflicts with RD in EX stage
        // If not a LDW command then enable forwarding for RS
        raw_flag = true;
+       
        #ifdef EN_FW
        if (inst_array[EX].operation == LDW){  //if it is a LDW command, then wait a cycle
            raw_flag = true; 
         } else {
            raw_flag = false;
-           forward_rs[EX] = true;
+           forward_rs_next[EX] = true;
+           cout << "raw_flag false, forward flag true, operation: " << inst_array[ID].operation << "\n";
         }
         #endif
     }
@@ -290,24 +293,23 @@ void Pipeline::ID_stage(){
        raw_flag = true;
        #ifdef EN_FW
        raw_flag = false;
-       forward_rs[MEM] = true;
+       forward_rs_next[MEM] = true;
        #endif
        // raw_flag = true;
-
     }
      if ((inst_array[ID].rt == inst_array[EX].rd) && (inst_array[EX].rd != 0)){
       //  cout << "RAW Hazard, ID Rt: " << inst_array[ID].rt 
       //         << " EX Rd: " << inst_array[EX].rd << "\n";
         //enable forwarding - RT in ID stage conflicts with RD in EX stage
         // enable fowarding from EX stage to EX stage for RT
-        raw_flag = true;
 
+        raw_flag = true;
         #ifdef EN_FW
         if (inst_array[EX].operation == LDW){
             raw_flag = true; 
         } else {
            raw_flag = false;
-           forward_rt[EX] = true;
+           forward_rt_next[EX] = true;
         };
         #endif
        // raw_flag = true;
@@ -317,11 +319,11 @@ void Pipeline::ID_stage(){
     //         << " MEM Rd: " << inst_array[MEM].rd << "\n";
       // raw_flag = true;
        //enable forwarding
-        raw_flag = true;
-
+    
+    raw_flag = true;
     #ifdef EN_FW
        raw_flag = false;
-       forward_rt[MEM] = true;
+       forward_rt_next[MEM] = true;
     #endif
       // raw_flag = true;
     }
@@ -330,27 +332,29 @@ void Pipeline::ID_stage(){
 void Pipeline::EX_stage(){
 int PC_temp = PC; // hold PC value for branch prediction check
 
- if (forward_rs_next[EX]) {
+ if (forward_rs[EX]) {
      Reg[inst_array[EX].rs] = stage_out[EX];
-     forward_rs[EX] = false;
+    // forward_rs[EX] = false;
+
+     cout << "forward rs from EX \n";
 
      if (inst_array[EX].rs == 0){
          cout << "Error: Writing value to register 0 (1) \n";
          cout << "PC: " << PC_temp << "\n";
      }
  }
- if (forward_rt_next[EX]) {
+ if (forward_rt[EX]) {
      Reg[inst_array[EX].rt] = stage_out[EX];
-     forward_rt[EX] = false;
+    // forward_rt[EX] = false;
 
      if (inst_array[EX].rt == 0){
          cout << "Error: Writing value to register 0 (2) \n";
          cout << "PC: " << PC_temp << "\n";
      }
  }
- if (forward_rs_next[MEM]){
+ if (forward_rs[MEM]){
      Reg[inst_array[EX].rs] = stage_out[MEM];
-     forward_rs[MEM] = false;
+    // forward_rs[MEM] = false;
 
      if (inst_array[EX].rs == 0){
          cout << "Error: Writing value to register 0 (3) \n";
@@ -358,9 +362,9 @@ int PC_temp = PC; // hold PC value for branch prediction check
          cout << "PC: " << PC_temp << "\n";
      }
  }
- if (forward_rt_next[MEM]){
+ if (forward_rt[MEM]){
      Reg[inst_array[EX].rt] = stage_out[MEM];
-     forward_rt[MEM] = false;
+    // forward_rt[MEM] = false;
 
      if (inst_array[EX].rt == 0){
          cout << "Error: Writing value to register 0 (4) \n";
@@ -396,13 +400,16 @@ int PC_temp = PC; // hold PC value for branch prediction check
         break;
     case MUL:
         stage_out[EX] =  Reg[inst_array[EX].rs] * Reg[inst_array[EX].rt];
+        cout << "Mult Case RS: " << Reg[inst_array[EX].rs] << " RT: " << Reg[inst_array[EX].rt] << " Result: " << stage_out[EX] << "\n";
         break;
     case MULI:
         stage_out[EX] =  Reg[inst_array[EX].rs] * inst_array[EX].immediate;
+        cout << "Multi Case RS: " << Reg[inst_array[EX].rs] << " immediate: " << Reg[inst_array[EX].immediate] << " Result: " << stage_out[EX] << "\n";
         break;
     
     case OR:
         stage_out[EX] = Reg[inst_array[EX].rs] | Reg[inst_array[EX].rt];
+       cout << "OR Case RS: " << Reg[inst_array[EX].rs] << " OR RT: " << Reg[inst_array[EX].rt] << " Result: " << stage_out[EX] << "\n";
         break;
     case ORI:
         stage_out[EX] = Reg[inst_array[EX].rs] | inst_array[EX].immediate;
@@ -444,15 +451,19 @@ int PC_temp = PC; // hold PC value for branch prediction check
     case BEQ:
         if (Reg[inst_array[EX].rs] == Reg[inst_array[EX].rt])  // contents of the rs register == contents of rt regsiter
         {
-            
+            cout << "Entered BEQ";
             stage_out[EX] = inst_array[EX].immediate;
             // calculate next PC location, remove 2 OFFSET for EX delay
             PC += inst_array[EX].immediate * PC_OFFSET - 3*PC_OFFSET;
             // check to see if previous instruction was predicted
-            if ((PC_temp - PC_OFFSET) != PC){
+            if ((PC_temp - PC_OFFSET*2) != PC){
                 flush_flag = true;
+                cout << "FLUSHING AT BEQ ***********************************************\n";
+               // sleep_for(1000ms);
             } else {
                 flush_flag = false;
+                cout << "NO FLUSHING AT BEQ ***********************************************\n";
+               // sleep_for(1000ms);
             };
 
         } else {
@@ -464,7 +475,7 @@ int PC_temp = PC; // hold PC value for branch prediction check
         stage_out[EX] = Reg[inst_array[EX].rs];
 
         PC = Reg[inst_array[EX].rs];  // set PC to contents of rs
-        if ((PC_temp - PC_OFFSET) != PC){
+        if ((PC_temp - PC_OFFSET*2) != PC){
                 flush_flag = true;
             } else {
                 flush_flag = false;
@@ -658,8 +669,6 @@ switch (inst.operation)
     if (inst.rd == 31){
             cout << "Reg 31, opcode: " << inst.operation <<"\n";
     }
-
-
     if (arith_inst > 800){
         sleep_for(10000ms);
     }

@@ -48,11 +48,11 @@ class Instruction{
 
     private:
         e_opCode operation = NOP;
-        int rs;
-        int rt;
-        int rd;
-        short immediate;
-        bool r_instruction;
+        int rs = 0;
+        int rt = 0;
+        int rd = 0;
+        short immediate = 0;
+        bool r_instruction = 0;
       //  bool halt_flag;
         // signed int address; - I don't believe having the instruction store it's own address is proper
 
@@ -71,11 +71,11 @@ class Pipeline_counter{
 
     private:
         
-        int arith_inst;
-        int logic_inst;
-        int mem_inst;
-        int cont_inst;
-        int debug;
+        int arith_inst = 0;
+        int logic_inst = 0;
+        int mem_inst = 0;
+        int cont_inst = 0;
+        int debug = 0;
         int clock_count = 0;
         int raw_count = 0;
         int flush_count = 0;
@@ -112,8 +112,8 @@ class Pipeline{
         bool raw_flag = false; // true if raw hazard detected in ID stage
         bool flush_flag = false; // true if values in IF / ID need to be flushed from misbranch
         array<Instruction,5> inst_array;
-        array<signed int, 5> stage_out;  //will this be larger than 32?
-        array<signed int,5> stage_in;
+        array<signed int, 5> stage_out = {0};  //will this be larger than 32?
+        array<signed int,5> stage_in = {0};
         array<signed int,5> fetched_instruction;
         const Instruction inst_nop;
         

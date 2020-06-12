@@ -16,7 +16,7 @@ int main()
     signed long N_inst;
     short loop_input = 0;
     string line;
-    ifstream myfile ("image.txt");
+    ifstream myfile ("final_proj_trace.txt");
     if (myfile.is_open())
     {
         while (! myfile.eof()){
@@ -43,10 +43,11 @@ int main()
         }
         
         // print every instruction in memory
-       for (int i = 50; i >= 0; i--) 
+       for (int i = 1023; i >= 0; i--) 
             {
-                a.decode(mem_array[i*4]);
-                cout << i*4 << " " << a.stringify() << "\n";
+             //   a.decode(mem_array[i*4]);
+             //   cout << i*4 << " " << a.stringify() << "\n";
+            // cout << i*4 << " " << to_string(mem_array[i*4]) << "\n";
             }
 
         myfile.close(); // closing the file
